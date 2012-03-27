@@ -1,0 +1,9 @@
+%% -*-erlang-*-
+{application, pubsub,
+ [{description, []},
+  {vsn,"0.1.0"},
+  {registered, []},
+  {applications, [kernel, stdlib, sasl]},
+  {mod, {e2_application, [pubsub]}},
+  {env, []},
+  {modules, []}]}.

@@ -1,0 +1,9 @@
+%% -*- erlang -*-
+{application, mydb,
+ [{description, "mydb app"},
+  {vsn, "1"},
+  {modules, []},
+  {registered, []},
+  {mod, {e2_application, [mydb_app]}},
+  {env, []},
+  {applications, [kernel, stdlib]}]}.

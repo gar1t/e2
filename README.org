@@ -1,0 +1,16 @@
+* e2
+
+e2 is a small Erlang library that helps you write better software in less time.
+
+- Erlang is hands down the best general purpose language for writing quality
+  software using fewer lines of code
+- It's not always obvious how to use Erlang to do this
+- e2 makes it obvious!
+
+If you think the first point is controversial, take a closer look at e2 before
+settling the issue in your mind. It may take some time and effort before all
+the pieces come together -- but isn't the promise tempting!
+
+Get started here:
+
+http://e2project.org

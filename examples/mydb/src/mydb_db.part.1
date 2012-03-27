@@ -1,0 +1,15 @@
+-module(mydb_db).
+
+-export([open/1, put/3, get/2, del/2]).
+
+open(File) ->
+    {todo_open_dets_file, File}.
+
+put(Db, Key, Value) ->
+    {todo_put_val, Db, Key, Value}.
+
+get(Db, Key) ->
+    {todo_read_val, Db, Key}.
+
+del(Db, Key) ->
+    {todo_delete_val, Db, Key}.

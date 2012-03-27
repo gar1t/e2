@@ -1,0 +1,21 @@
+<h3>API Reference</h3>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">Overview</a></li>
+{%- macro mod(mod) %}
+<li class="toctree-l1"><a class="reference internal" href="api/{{mod}}.html">{{mod}}</a></li>
+{%- endmacro %}
+{{mod("e2_application")}}
+{{mod("e2_application_sup")}}
+{{mod("e2_log")}}
+{{mod("e2_log_handler")}}
+{{mod("e2_opt")}}
+{{mod("e2_publisher")}}
+{{mod("e2_reloader")}}
+{{mod("e2_service")}}
+{{mod("e2_service_impl")}}
+{{mod("e2_simple_task")}}
+{{mod("e2_supervisor")}}
+{{mod("e2_task")}}
+{{mod("e2_task_impl")}}
+{{mod("e2_task_supervisor")}}
+</ul>

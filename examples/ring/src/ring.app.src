@@ -1,0 +1,8 @@
+%% -*-erlang-*-
+{application, ring,
+ [{description, []},
+  {vsn,"0.1.0"},
+  {registered, []},
+  {applications, [kernel, stdlib, sasl]},
+  {env, []},
+  {modules, []}]}.

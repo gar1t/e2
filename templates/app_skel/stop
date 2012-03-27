@@ -1,0 +1,6 @@
+#!/bin/sh
+echo "init:stop()." | to_erl ./run/ 2> /dev/null
+if [ $? != "0" ]; then
+    echo "Error stopping application (was it running?)"
+    exit 1
+fi

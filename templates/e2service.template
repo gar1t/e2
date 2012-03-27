@@ -1,0 +1,3 @@
+%% -*- erlang -*-
+{variables, [{module, ""}, {dest, ""}]}.
+{template, "modules/service.erl", "{{dest}}/src/{{module}}.erl"}.

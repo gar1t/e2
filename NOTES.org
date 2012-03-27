@@ -1,0 +1,656 @@
+* API Design
+
+** e2_service
+
+Require a "callbacks" argument. This can be expressed in two ways:
+
+- Module
+- Record of callback functions (do we need this?)
+
+A module is a short hand for a predefined set of callbacks that may be exported
+by the module.
+
+Also require an "init state" argument. This is either the single argument to an
+"init" function, or if the "init" function isn't a part of the callbacks, the
+initial state of the process.
+
+All remaining arguments should be optional.
+* Services
+
+- Named or registered
+- Anonymous
+
+* Supervisors
+
+** Rambling Notes
+
+There's an app supervisor, which is used like this:
+
+#+begin_src erlanga
+  e2_application_sup:start_link(E2App).
+#+end_src
+
+It looks like the intent here is to not use callbacks here.
+
+I'm wondering what the point of using init/1 with supervisors, as opposed to
+just specifying a child spec.
+
+init/1 has access to the application config, whereas the caller might not.
+
+But is that really a reason to require a separate module for a supervisor?
+
+Actually, a supervisor is a factory API, so it's a good idea.
+
+So that's that.
+
+But there's no need for a callback?
+
+Here's how the task supervisor is used:
+
+#+begin_src erlang
+  -module(calc_handler_sup).
+
+  -behavior(e2_task_supervisor).
+
+  -export([start_link/0, start_handler/1]).
+
+  start_link() ->
+      e2_task_supervisor:start_link(?MODULE).
+
+  start_handler(Socket) ->
+      e2_task_supervisor:start_task(?MODULE, calc_handler, [Socket]).
+
+#+end_src
+
+When would `start_link/0` be called outside the context of an application
+start?
+
+Looking at http://www.erlang.org/doc/man/supervisor.html it's not clear what
+benefit init/1 provides outside of just passing the child spec to the
+supervisor start_link.
+
+** Use
+
+A very simple, common supervisor spec:
+
+#+BEGIN_SRC erlang
+  supervisor:start_link([my_ids, my_data, my_web])
+#+END_SRC
+
+This will start and supervisor the list of services using a one_for_one restart
+strategy, which is a common scenarion.
+
+If you want to change the restart policy, specify it as an option:
+
+#+BEGIN_SRC erlang
+  supervisor:start_link([my_ids, my_data, my_web], [one_for_all])
+#+END_SRC
+
+To specify options for a child, you can provide a tuple with a list of options:
+
+#+BEGIN_SRC erlang
+  supervisor:start_link([{my_ids, [{args, ["some_seed"])
+#+END_SRC
+
+* Message Handling
+
+gen_servers handle three types of messages:
+
+- Calls
+- Casts
+- Other Erlang messages
+
+There are three different callbacks used for this:
+
+- handle_call/3
+- handle_cast/2
+- handle_info/2
+
+I *think* this delineation could be a Bad Thing:
+
+- It's not necessary to break up the handler implementation like this
+- The handler implementation is bound to the way the message is sent
+
+I'd rather see a single message handler that looked like this:
+
+#+begin_src erlang
+  @spec handle_msg(Msg, From, State) -> Result
+  Msg = term()
+  From = anonymous | {pid(), Tag}
+  State = term()
+  Result = {noreply, State} | {reply, Reply, State} | ...
+  @end
+#+end_src
+
+In cases where a message doesn't have a sender (e.g. a cast or a normal Erlang
+message), the From argument will be 'anonymous' (NOTE: could alternatively be
+'undefined' or similar).
+
+It would be accessptable to return {reply, Value, State} even for anonymous
+messages -- this would just mean that the reply value is ignored.
+
+I don't see any difference between a cast and a normal Erlang send. I can see
+the interest in providing a 'cast' function in the interest of symmetry with
+'call' -- but I'd rather see it called gen_server:send/2 -- which is really
+nothing more than a alternative spelling of erlang:send/2.
+
+With this approach, an e2 process would just need to export a single
+handle_msg/3 callback to deal with anything.
+
+How does this relate to explicitly mapped callbacks? E.g. a typical public
+function is implemented like this:
+
+#+begin_src erlang
+  ping() ->
+      e2_service:call(?MODULE, {handle_ping, []}).
+
+  handle_ping(_From, State) ->
+      {reply, pong, State}.
+#+end_src
+
+I suppose the alternative spelling in the case of handle_msg would look like
+this:
+
+#+begin_src erlang
+  ping() ->
+      e2_service:call(?MODULE, ping).
+
+  handle_msg(ping, _From, State) ->
+      {reply, pong, State}.
+#+end_src
+
+In some ways I prefer this to the explicit handler form:
+
+- Avoids the smelly Args ++ [From, State] pattern
+- Makes it clear that a process implementation is a message handler
+- Makes it easier to group message handling logic
+
+The original motivator for this change was not to simplify the callback API --
+it was to make it easier to view a process's message handling logic in once place.
+
+* Utils
+
+** Options Processing
+
+It's common to accept a proplist as an argument to an operation. The problem is
+that property lists are easy to get wrong -- and without proper validation, the
+user may specify something incorrectly without realizing it.
+
+We need a module that takes an option schema and converts a user provided
+proplist into a validated list.
+
+Something like this:
+
+#+BEGIN_SRC erlang
+  Schema = [{color, ?DEFAULT_COLOR}],
+  Opts = e2_opt:validate(Options, Schema),
+  Color = e2_opt:value(color, Opts)
+#+END_SRC
+
+* Pitch
+
+** vs Scala
+
+The e2 service analog to the Scala Counter class:
+
+#+begin_src erlang
+  -module(counter).
+
+  -compile(export_all).
+
+  start_link() ->
+      e2_service:start_link(0).
+
+  tick(T) ->
+      e2_service:call(T, {handle_tick, []}).
+
+  handle_tick(Counter) ->
+      Next = Counter + 1,
+      {reply, Next, Next}.
+
+#+end_src
+
+A little cheating here: export_all flag and not declaring the e2_service
+behavior.
+
+What if we wanted to make the initialization implicit?
+
+#+begin_src erlang
+  -module(counter).
+
+  -include_lib("e2/include/e2.hrl").
+
+  -e2_service([{init_state, 0}]).
+
+  tick(T) -> e2_service:cast(T, handle_tick).
+
+  handle_tick(Counter) ->
+      Next = Counter + 1,
+      io:format("~b~n", [Next]),
+      {noreply, Next}.
+
+#+end_src
+
+IMO this is a mess:
+
+- The implicit behavior is just as much work as the explicit behavior above
+- Process initialization is a part of the module API -- it needs to be defined
+  so it can be documented
+
+So, NO! Bad dog!
+
+A stricter Erlangy interpretation, which is closer in spirit to the Scala actor
+example:
+
+#+begin_src erlang
+  -module(counter).
+
+  -export([start/0]).
+
+  start() ->
+      spawn(fun() -> loop(0) end).
+
+  loop(Counter) ->
+      receive
+          tick ->
+              Next = Counter + 1,
+              io:format("~b~n", [Next]),
+              loop(Next)
+      end.
+
+#+end_src
+
+Here's some aweful code:
+
+#+begin_src fundamental
+  val result = (actor !! Message).as[String]
+#+end_src
+
+This is what we'd expect in Erlang:
+
+#+begin_src erlang
+  Result = some_module:some_function(Actor),
+  ResultAsStr = io_lib:format("~p", [Result])
+#+end_src
+
+The advantage of Erlang here is that it's so damn simple. There's no implicit
+stuff that goes anywhere -- it's all just functions. That it!
+
+E.g. in Scala, what the hell is this:
+
+#+begin_src fundamental
+  class MyActor extends Actor {
+    self.dispatcher = Dispatchers.newThreadBasedDispatcher(self)
+    ...
+  }
+  actor.dispatcher = dispatcher // before started
+#+end_src
+
+This smells, nay, reeks, of Scala's Java heritage.
+
+** Instant Grok
+
+It might not be instance Grok, but the hello work ring example is pretty
+compact and demonstrates the ability to start hundreds of thousands of
+processes trivially.
+
+* To Do / Issues
+
+** TODO Application init callback needs a param
+
+Support two forms:
+
+- If the app is specified as {Module, ArgList}, then invoke init/1
+- If the app is specified as Module, invoke init/0
+** TODO Document implicit trap_exit behavior
+
+If a service exports terminate/2, exits are automatically trapped for the
+process. I think this is right, but it's implicit and needs to be documented.
+** TODO Upcoming supervisor proplist support
+
+In this thread:
+
+http://comments.gmane.org/gmane.comp.lang.erlang.patches/2588
+
+RC is proposing something similar to what we have for e2_supervisor. Let's sync
+up on that if/when it lands!
+** TODO Virding's "state reconstruction" idea
+
+At EUC 2011, Robert mentioned a process type that was responsible for
+reconstructing state on process restart/recovery.
+
+I would have guessed this was a job for the process itself. What's the
+rationale for using a separate process?
+
+I can't imagine the recovered process would block until its state was available
+-- but what would it do as the state recover was underway? It's one or the
+other though.
+
+In e2, I would see this looking something like this:
+
+#+begin_src erlang
+  start_link() ->
+      e2_service:start_link(?MODULE).
+
+  init(_) ->
+      some_recovery_helper:start_link(),
+      {ok, recovery}.
+
+  handle_msg({recovered_state, State}, _From, recovery) ->
+      {noreply, State};
+  handle_msg(_Msg, _From, recovery) ->
+      {noreply, recovery};
+  handle_msg(do_something, _From, State) ->
+      handle_do_something(State).
+#+end_src
+
+This *could* be something baked into a new process type --
+e.g. e2_recoverable_service. The above code would be simplfied to this:
+
+#+begin_src erlang
+  start_link() ->
+      e2_recoverable_service:start_link(
+        ?MODULE, [{state_builder, some_recovery_helper}]).
+
+  handle_msg(do_something, _From, State) ->
+      handle_do_something(State).
+#+end_src
+
+The terms 'recovery' and 'state_builder' are debatable.
+
+I like formalizing this concept -- I think there are areas I could use this. It
+could also just be a pattern.
+
+This could also be a facility that uses a supervisor to start both the
+recovered process and the recovery helper. The start_link directly from a
+worker is not ideal.
+** DONE Repeating tasks
+
+It should be possible to schedule a repeating task (ala gen_timer).
+
+I think this is belongs in e2_task -- there's still just one thing to do, you
+just need to do it on a schedule.
+
+This is sort of supported today with continue return type -- this is probably
+just a matter of adding a repeat option for the task and treat 'continue' as an
+implicit indicator of a repeat. {continue, State, Delay} would say, "skip the
+repeat interval and execute after Delay" -- you could use {continue, State, 0}
+to continue immediately.
+** DONE Check repeating task logic
+
+Tasks delay and repeat logic can be specified two ways: as options to the task
+and from the init/1 return value. Make sure that a repeat spec in the task
+options is used, even when init/1 doesn't provide any repeat info.
+
+I.e. this should repeat:
+
+#+begin_src erlang
+  start_link() ->
+      e2_task:start_link(?MODULE, [], [{repeat, 1000}, {delay, 5000}]).
+
+  init([]) ->
+      {ok, #state{}}.
+#+end_src
+
+If a timeing spec is returned by init, it should override the options.
+
+** TODO Logging
+
+Using error_logger for generic logging is awful. Just a rename would be a
+benefit.
+
+But a basic logging facility should do more than cleanup distractingly poor
+module names. In addition to straight pass through of logging to error_logger,
+e2 logging should:
+
+- DONE Support a compact format for logging
+- TODO Make it trivial to plugin different handlers (e.g. syslog)
+- TODO Otherwise keep it drop dead simple (i.e. avoid any log4j moments of
+  inspiration)
+
+The working API is very simple in that it combines messages and reports.
+
+In the way it's implemented, we've lost report types. This undermines the whole
+custom handler desgin of error_logger.
+
+E.g. these are not distinguishable:
+
+ e2_log:info("I got this: ~p", ["a message"])
+
+ e2_log:info(custom_log_type, {msg, "a message"})
+
+We could get very hacky here and prescribe that, for custom report types,
+the first arg must be an atom or a tuple, rather than an iolist.
+
+I suspect custom types and handlers are more edge cases and should fall behind
+API simplicity in priority.
+
+For now, we can keep the API as is and work types into it later, perpahs as a
+separate function.
+
+Also, the translated log events currently use both {error, Report} and
+{error_msg, {Format, Data}} formats -- the _msg variant being something that
+could leak through if someone uses error_logger directly (e2_log converts
+everything to reports). This needs to be cleaned up somehow.
+
+** DONE Rethink "next message" pattern in e2_service
+
+We've morphed the optional timeout/hibernate tuple element for "next message"
+in e2 return values.
+
+The problem with this is it's disabled the gen_server timeout and hibernate
+features.
+
+One could argue that 'timeout' is a misfeature and we shouldn't support it.
+
+Hiberate on the other hand is possibly something we want.
+
+A possible API change is to do make this term explicit:
+
+  Term = {timeout, Timeout} | hibernate | {handle_msg, Msg}
+
+So a "send this as next message scenario" would look like this:
+
+#+begin_src erlang
+  handle_msg(check, noreply, State) ->
+      check_something(State),
+      {noreply, State, {handle_msg, check}}.
+#+end_src
+
+It currently looks like this:
+
+#+begin_src erlang
+  handle_msg(check, noreply, State) ->
+      check_something(State),
+      {noreply, State, check}.
+#+end_src
+
+How does this tie to the init result API? It should be consistent / make sense.
+
+** TODO Workers and result collections
+
+This is a pattern that we want to support: a coodinator starts a bunch of tasks
+that run in parallel and then collects the results.
+
+This should probably piggy back on task supervisors and tasks. We're just
+missing the result collection mechanism.
+
+Maybe a e2_worker behavior, which is a subtype of e2_task. The task however is
+allowed to return a value from handle_task.
+
+Then e2_worker_supervisor, which is used to start the workers and returns the
+results.
+
+A worker might look like this:
+
+#+begin_src erlang
+  -module(adder).
+
+  -behavior(e2_task).
+
+  -export([start_link/2, handle_task/1]).
+
+  start_link(X, Y) ->
+      e2_task:start_link(?MODULE, [X, Y]).
+
+  handle_task([X, Y]) ->
+      {reply, X + Y}.
+#+end_src
+
+The supervisor might look like this:
+
+#+begin_src erlang
+  -module(adder_sup).
+
+  -behavior(e2_task_supervisor).
+
+  -export([start_link/2, add/1]).
+
+  start_link() ->
+      e2_task_supervisor:start_link(?MODULE, adder).
+
+  add(Pairs) ->
+      {ok, Tasks} = e2_task_supervisor:start_tasks(Pairs),
+      e2_task_supervisor:wait_for_results(Tasks).
+#+end_src
+
+** TODO start_child support for e2_supervisor
+
+This is *big* missing feature!
+
+** DONE Task refactor
+
+The 'continue' signal from a task's handle_task callback should be changed:
+
+- It should more clearly indicate that the task will be repeated
+- We need to differentiate a "repeat" from a "keep running" signal
+
+Proposal:
+
+- Change 'continue' to 'repeat' - semmantics remain the same
+- Add 'wait' to indicate that the task should keep running, but not be repeated
+
+The "repeat" signal is clear.
+
+The term "wait" comes from the Erlang process state "waiting", which indicates
+that it's ready to receive messages. This is what we want to suggest.
+
+The motivation for this is to enable asynchronous tasks, which aren't possible
+under with just 'continue'.
+
+A wait reply should support an optional third element, which is a timeout value
+in milliseconds. This is just a pass through to the noreply result.
+** TODO Supervisor trees as data
+
+Why can't we just provide a declarative model for supervisors?
+
+#+begin_src erlang
+  [{service, calc_server},
+   {task_supervisor, calc_handler_sup, calc_handler},
+   {supervisor, fancy_logging_sup,
+    [{service, my_logger},
+     {service, another_logger}]}].
+#+end_src
+
+This would not require modules. In that case, applicable APIs could be provided
+by the e2 modules.
+
+Advantages:
+
+- Fewer modules, most of which are boilerplate
+- You can see the supervisory hierarchy in once place
+
+This could even be included in the .app file.
+
+This approach underscores the idea that supervisors are very and just follow
+recipes.
+** DONE Resolve Task API for waiting / handling messages
+
+What's best API for a task to signal that it wants to still run but not to
+repeat.
+
+  {wait, State}
+  {wait_for_msg, State}
+  {handle_messages, State}
+  {keep_running, State}
+
+The current tag is 'wait', which I'm inclined to keep. 'wait_for_msg' is also
+good.
+
+Resolves: using wait_for_msg.
+
+** TODO Resolve optional state element in return values
+
+In some cases (rare) a handler API does not require a state element
+(e.g. e2_task:handle_task/1).
+
+We need to either drop that -- i.e. always require a state element -- or make
+it optional everywhere.
+
+I'm inclined to require it:
+
+- It's consistent
+- It's explicit
+- Making it optional *everywhere* would add quite a few case/function clauses
+- There's very little cost in adding the state
+
+One could make the case that it should be optional in 'stop' results.
+** TODO e2_reg
+
+I *think* we want to include an e2 version of groc. I'd see this as a
+combination of two things:
+
+| e2_gproc | An exact copy of gproc     |
+| e2_reg   | A e2 interface to e2_gproc |
+
+The use cases we want to cover:
+
+- Publishing values for a process
+- Registering a process under a tag
+
+Perhaps an API like this:
+
+#+begin_src erlang
+  incr_value(Name) -> any()
+  incr_value(Name, Amount) -> any()
+  set_value(Name, Value) -> any()
+  register(Name) -> any()
+#+end_src
+
+e2_reg is debatable.
+
+** TODO e2_cache
+
+A very simple value cache with expiration.
+
+This can be used to guard against DoS vectors.
+** TODO handle_msg return fast support
+
+From Richard Carlson's recent Dos and Donts:
+
+Don't:
+
+  handle_call({find, X}, _From, State) ->
+      {reply, {ok, search_db(X)}, State}.
+
+Do:
+
+  handle_call({find, X}, _From, State) ->
+      proc_lib:spawn_link(
+          fun() -> gen_server:reply(From, {ok, search_db(X)}) end),
+      {noreply, State}.
+
+This is *great*. Could e2 highlight this as a pattern?
+
+  handle_msg({find, X}, _From, State) ->
+      {spawn_reply, fun() -> {ok, search_db(X)} end, State}.
+
+      *Yes!*
+
+
+* Publishing e2 To Do
+
+** Change dependency to git://github.com/gar1t/e2.git
+** Replace git://github.com/gar1t/e2.git with official release
+** Delete e2v2
+** Spell check everything!

@@ -1,0 +1,9 @@
+%% -*-erlang-*-
+{application, tasks,
+ [{description, []},
+  {vsn,"0.1.0"},
+  {registered, []},
+  {applications, [kernel, stdlib, sasl]},
+  {mod, {e2_application, [tasks]}},
+  {env, []},
+  {modules, []}]}.

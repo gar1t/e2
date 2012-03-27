@@ -1,0 +1,26 @@
+-module(mydb_client_handler).
+
+-behavior(e2_task).
+
+-export([start_link/1]).
+
+-export([handle_task/1, terminate/2]).
+
+start_link(Socket) ->
+    e2_task:start_link(?MODULE, Socket).
+
+handle_task(Socket) ->
+    handle_command_line(read_line(Socket), Socket).
+
+read_line(Socket) ->
+    inet:setopts(Socket, [{active, false}, {packet, line}]),
+    gen_tcp:recv(Socket, 0).
+
+handle_command_line({ok, Data}, Socket) ->
+    io:format("### Got ~p from client~n", [Data]),
+    {repeat, Socket};
+handle_command_line({error, Err}, Socket) ->
+    {stop, {socket_err, Err}}.
+
+terminate(_Reason, Socket) ->
+    gen_tcp:close(Socket).

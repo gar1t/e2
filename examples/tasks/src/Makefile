@@ -1,0 +1,2 @@
+compile:
+	cd .. && make compile

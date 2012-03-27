@@ -1,0 +1,4 @@
+%% -*- erlang -*-
+{variables, [{module, ""}, {task_module, "{{module}}"}, {dest, ""}]}.
+{template, "modules/task.erl", "{{dest}}/src/{{module}}.erl"}.
+{template, "modules/task_sup.erl", "{{dest}}/src/{{module}}_sup.erl"}.

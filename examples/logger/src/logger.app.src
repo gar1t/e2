@@ -1,0 +1,9 @@
+%% -*-erlang-*-
+{application, logger,
+ [{description, []},
+  {vsn,"0.1.0"},
+  {registered, []},
+  {applications, [kernel, stdlib, sasl, syslog]},
+  {mod, {e2_application, [logger]}},
+  {env, []},
+  {modules, []}]}.

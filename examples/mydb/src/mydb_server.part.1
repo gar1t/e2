@@ -1,0 +1,27 @@
+-module(mydb_server).
+
+-behavior(e2_task).
+
+-export([start_link/1]).
+
+-export([init/1, handle_task/1]).
+
+start_link(Port) ->
+    e2_task:start_link(?MODULE, Port).
+
+init(Port) ->
+    {ok, listen(Port)}.
+
+handle_task(Socket) ->
+    dispatch_client(wait_for_client(Socket)),
+    {repeat, Socket}.
+
+listen(_Port) ->
+    fake_listen_socket.
+
+wait_for_client(_Socket) ->
+    timer:sleep(5000),
+    fake_client_socket.
+
+dispatch_client(Client) ->
+    io:format("TOOD: dispatch client ~p~n", [Client]).

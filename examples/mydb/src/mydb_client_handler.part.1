@@ -1,0 +1,17 @@
+-module(mydb_client_handler).
+
+-behavior(e2_task).
+
+-export([start_link/1]).
+
+-export([handle_task/1, terminate/2]).
+
+start_link(Socket) ->
+    e2_task:start_link(?MODULE, Socket).
+
+handle_task(Socket) ->
+    gen_tcp:send(Socket, "hello, and goodbye!\r\n"),
+    {stop, normal}.
+
+terminate(_Reason, Socket) ->
+    gen_tcp:close(Socket).

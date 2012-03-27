@@ -1,0 +1,8 @@
+#!/bin/sh
+echo "" | to_erl ./run/ 2> /dev/null
+if [ $? == "0" ]; then
+    echo "Application is running"
+else
+    echo "Application is NOT running"
+    exit 1
+fi

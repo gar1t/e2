@@ -1,0 +1,19 @@
+%% -*- erlang -*-
+{variables, [{appid, ""}, {dest, ""}, {version, "1"}]}.
+{dir, "{{dest}}"}.
+{template, "app_skel/src/app.src", "{{dest}}/src/{{appid}}.app.src"}.
+{template, "app_skel/src/app.erl", "{{dest}}/src/{{appid}}_app.erl"}.
+{template, "app_skel/src/facade.erl", "{{dest}}/src/{{appid}}.erl"}.
+
+{file, "app_skel/.gitignore", "{{dest}}/.gitignore"}.
+{file, "app_skel/Makefile", "{{dest}}/Makefile"}.
+{file, "app_skel/src/Makefile", "{{dest}}/src/Makefile"}.
+{file, "app_skel/rebar.config", "{{dest}}/rebar.config"}.
+{file, "app_skel/rebar", "{{dest}}/rebar"}.
+
+{template, "app_skel/start", "{{dest}}/start"}.
+{template, "app_skel/stop", "{{dest}}/stop"}.
+{template, "app_skel/status", "{{dest}}/status"}.
+{template, "app_skel/dev.config", "{{dest}}/dev.config"}.
+
+{chmod, 8#755, "{{dest}}/rebar"}.

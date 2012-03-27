@@ -1,0 +1,2 @@
+%%% -*-erlang-*-
+{application, supervise, [{vsn, "1"}]}.

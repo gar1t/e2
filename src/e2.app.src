@@ -1,0 +1,8 @@
+%%% -*-erlang-*-
+{application, e2,
+ [{description, "High level Erlang application framework"},
+  {vsn, "0.1.0"},
+  {registered, []},
+  {applications, [kernel, stdlib]},
+  {env, []}
+ ]}.
