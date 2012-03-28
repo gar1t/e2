@@ -1,3 +1,15 @@
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc Behavior for custom log handlers.
+%%
+%% Refer to [https://github.com/gar1t/e2/tree/master/examples/logger
+%% examples/logger] for a sample custom logger using this behavior.
+%%
+%% @end
+%% ===================================================================
+
 -module(e2_log_handler).
 
 -behavior(gen_event).
@@ -7,6 +19,7 @@
 
 -export([behaviour_info/1]).
 
+%% @private
 behaviour_info(callbacks) -> [{handle_event, 2}].
 
 -record(state, {mod, mod_state}).
@@ -15,21 +28,27 @@ behaviour_info(callbacks) -> [{handle_event, 2}].
 %%% gen_event callbacks
 %%%===================================================================
 
+%% @private
 init({Module, Args}) ->
     dispatch_init(Module, Args, init_state(Module)).
 
+%% @private
 handle_event(Event, State) ->
     dispatch_event(e2_log_event(Event), State).
 
+%% @private
 handle_call(_Msg, State) ->
     {ok, {error, not_handled}, State}.
 
+%% @private
 handle_info(_Msg, State) ->
     {ok, State}.
 
+%% @private
 terminate(Reason, State) ->
     dispatch_terminate(Reason, State).
 
+%% @private
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

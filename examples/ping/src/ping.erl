@@ -13,4 +13,4 @@ ping() ->
     ping_server:ping().
 
 init() ->
-    {ok, [ping_server]}.
+    {ok, [ping_server], [{max_restart, {4, 4}}]}.

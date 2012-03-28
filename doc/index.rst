@@ -13,7 +13,7 @@ less time and effort.
    tutorial
    erlang
 
-.. rubric:: Documentation
+.. rubric:: Core Concepts
 
 .. toctree::
    :maxdepth: 1
@@ -23,5 +23,14 @@ less time and effort.
    tasks
    supervisors
    facades
+
+.. rubric:: Other Documentation
+
+.. toctree::
+   :maxdepth: 1
+
    erlang_modules
+   examples
+   e2_vs_otp
+   principles
    todo

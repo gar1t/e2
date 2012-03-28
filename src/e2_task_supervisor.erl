@@ -1,3 +1,16 @@
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc e2 task supervisor.
+%%
+%% See [http://e2project.org/supervisors.html e2 supervisor] documentation
+%% for more information.
+%%
+%% @see e2_supervisor
+%% @end
+%% ===================================================================
+
 -module(e2_task_supervisor).
 
 -behaviour(supervisor).
@@ -8,6 +21,7 @@
 
 -export([behaviour_info/1]).
 
+%% @private
 behaviour_info(callbacks) -> [].
 
 -define(DEFAULT_MAX_RESTART, {1, 1}).
@@ -32,8 +46,33 @@ behaviour_info(callbacks) -> [].
 %%% API
 %%%===================================================================
 
+%%--------------------------------------------------------------------
+%% @doc Starts a linked task supervisor.
+%% @equiv start_link(Module, ChildOrArgs, [])
+%% @end
+%%--------------------------------------------------------------------
+
 start_link(Module, ChildOrArgs) ->
     start_link(Module, ChildOrArgs, []).
+
+%%--------------------------------------------------------------------
+%% @doc Starts a linked task supervisor.
+%%
+%% See {@link e2_supervisor:start_link/3} for details on Options.
+%%
+%% If Module exports `init/1', the second argument will be passed to
+%% `init/1' when it's called. The return value from `init/1' is used
+%% as the child spec.
+%%
+%% If Module does not export `init/1', the second argument is the child
+%% spec. See {@link e2_supervisor:start_link/3} for details on ChildSpec.
+%%
+%% @spec start_link(Module, ChildOrArgs, Options) ->
+%%                                      {ok, Pid} | {error, Reason}
+%% Module = atom()
+%% ChildOrArgs = ChildSpec | term()
+%% @end
+%%--------------------------------------------------------------------
 
 start_link(Module, ChildOrArgs, Options) ->
     case exports_init(Module) of
@@ -43,6 +82,19 @@ start_link(Module, ChildOrArgs, Options) ->
             start_supervisor_with_child(Module, ChildOrArgs, Options)
     end.
 
+%%--------------------------------------------------------------------
+%% @doc Starts a new supervised task.
+%%
+%% ExtraArgs is a list of optional arguments to pass to the task's
+%% start function (provided in the child spec when the supervisor was
+%% started / initialized).
+%%
+%% @spec start_task(Supervisor, ExtraArgs) -> {ok, Pid} | {error, Reason}
+%% Supervisor = pid() | atom()
+%% ExtraArgs = [term()]
+%% @end
+%%--------------------------------------------------------------------
+
 start_task(Sup, ExtraArgs) ->
     supervisor:start_child(Sup, ExtraArgs).
 
@@ -50,6 +102,7 @@ start_task(Sup, ExtraArgs) ->
 %%% supervisor callbacks
 %%%===================================================================
 
+%% @private
 init({Module, Args}) ->
     dispatch_init(Module, Args).
 

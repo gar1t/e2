@@ -7,10 +7,10 @@
 -export([handle_msg/3]).
 
 start_link() ->
-    e2_service:start_link(?MODULE, [], [registered]).
+    start_link([]).
 
-start_link([unregistered]) ->
-    e2_service:start_link(?MODULE, []).
+start_link(Options) ->
+    e2_service:start_link(?MODULE, [], Options).
 
 stop(Reason) ->
     e2_service:cast(?MODULE, {stop, Reason}).

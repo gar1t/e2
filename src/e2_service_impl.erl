@@ -1,11 +1,10 @@
-%%% Support for custom service implementations.
-%%%
-%%% I'm not 100% happy with this name: hearkens to Java "Impl" classes
-%%% and otherwise is totally obvious. Other options considered:
-%%% e2_service_util (bad, overused "util" grab bag of misc supporting
-%%% functions), e2_service_cb / e2_service_cbmod / e2_service_callback
-%%% (arguably better as we typically refer to these modules as "callback
-%%% modules, but it feels jargony).
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc Utility module for implementing custom e2 services.
+%% @end
+%% ===================================================================
 
 -module(e2_service_impl).
 

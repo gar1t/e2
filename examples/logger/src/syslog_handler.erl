@@ -1,4 +1,4 @@
--module(syslog_handler).
+b-module(syslog_handler).
 
 -behavior(e2_log_handler).
 

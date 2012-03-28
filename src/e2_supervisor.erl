@@ -1,3 +1,18 @@
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc e2 supervisor.
+%%
+%% An e2 supervisor provides identical functionality to that of an
+%% [http://www.erlang.org/doc/man/supervisor.html OTP supervisor] but
+%% uses a simpler interface.
+%%
+%% See [http://e2project.org/supervisors.html e2 supervisor] documentation
+%% for more information.
+%% @end
+%% ===================================================================
+
 -module(e2_supervisor).
 
 -behaviour(supervisor).
@@ -8,6 +23,7 @@
 
 -export([behaviour_info/1]).
 
+%% @private
 behaviour_info(callbacks) -> [].
 
 -define(DEFAULT_STRATEGY, one_for_one).
@@ -48,8 +64,65 @@ behaviour_info(callbacks) -> [].
 %%% API
 %%%===================================================================
 
+%%--------------------------------------------------------------------
+%% @doc Starts a linked e2 supervisor.
+%% @equiv start_link(Module, ChildrenOrArgs, [])
+%% @end
+%%--------------------------------------------------------------------
+
 start_link(Module, ChildrenOrArgs) ->
     start_link(Module, ChildrenOrArgs, []).
+
+%%--------------------------------------------------------------------
+%% @doc Starts a linked e2 supervisor.
+%%
+%% The e2 supervisor API lets you create child specs with minimal
+%% complexity, picking sensible defaults for missing values.
+%%
+%% If `Module' exports `init/1', `ChildrenOrArgs' will be used as the
+%% argument to that function and the result of that function will be used
+%% as the child spec.
+%%
+%% <h4>Defaults</h4>
+%% <pre>
+%% Function = start_link
+%% Args = []
+%% ChildOptions = [{id, Module}, {restart, permanent}, {shutdown, brutal_kill}]
+%% Options = [{strategy, one_for_one}, {max_restart, {1, 1}}]
+%% </pre>
+%%
+%% Refer to [http://e2project.org/supervisors.html e2 supervisor] and
+%% [http://e2project.org/applications.html e2 applications] documentation
+%% for more information.
+%%
+%% @spec (Module, ChildrenOrArgs, Options) -> {ok, Pid} | {error, Reason}
+%% Module = module()
+%% ChildrenOrArgs = Children | term()
+%% Children = [ChildSpec]
+%% ChildSpec = {{Module, Function, Args}, ChildOptions}
+%%           | {Module, Function, Args}
+%%           | {Module, ChildOptions}
+%%           | Module
+%% Module = atom()
+%% Function = atom()
+%% Args = [term()]
+%% ChildOptions = [ChildOption]
+%% ChildOption = {id, term()}
+%%             | {restart, Restart}
+%%             | {shutdown, Shutdown}
+%% Restart = permanent | temporary | transient
+%% Shutdown = brutal_kill | integer()
+%% Options = [Option]
+%% Option = {strategy, Strategy}
+%%        | {max_restart, {Max, Seconds}}
+%%        | Registered
+%% Strategy = one_for_all | one_for_one | rest_for_one | simple_one_for_one
+%% Max = integer()
+%% Seconds = integer()
+%% Registered = registered | {registered, Name}
+%% Name = atom()
+%% @end
+%%--------------------------------------------------------------------
 
 start_link(Module, ChildrenOrArgs, Options) ->
     case exports_init(Module) of
@@ -59,6 +132,16 @@ start_link(Module, ChildrenOrArgs, Options) ->
             start_supervisor_with_spec(Module, ChildrenOrArgs, Options)
     end.
 
+%%--------------------------------------------------------------------
+%% @doc Returns an OTP supervisor spec for a list of child specs and
+%% e2 supervisor options.
+%%
+%% See {@link start_link/3} for details on `ChildSpec' and `Options'.
+%%
+%% @spec (Children, Options) -> OTPSupervisorSpec
+%% @end
+%%--------------------------------------------------------------------
+
 supervisor_spec(Children, Options) ->
     ValidatedOpts = e2_opt:validate(Options, ?OPTIONS_SCHEMA),
     {restart_spec(ValidatedOpts), child_specs(Children)}.
@@ -67,6 +150,7 @@ supervisor_spec(Children, Options) ->
 %%% supervisor callbacks
 %%%===================================================================
 
+%% @private
 init({init, Module, Args}) ->
     dispatch_init(Module, Args);
 init({spec, Spec}) ->

@@ -1,3 +1,20 @@
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc e2 task behavior.
+%%
+%% Tasks are e2_service behaviors that run actively after started.
+%%
+%% A task may be delayed after started.
+%%
+%% A task may repeat.
+%%
+%% For more information see [http://e2project.org/tasks.html e2
+%% tasks] documentation.
+%% @end
+%% ===================================================================
+
 -module(e2_task).
 
 -behavior(e2_service).
@@ -9,6 +26,7 @@
 
 -export([behaviour_info/1]).
 
+%% @private
 behaviour_info(callbacks) -> [{handle_task, 1}].
 
 -record(state, {mod, mod_state, handle_msg, start, repeat}).
@@ -17,21 +35,70 @@ behaviour_info(callbacks) -> [{handle_task, 1}].
 %%% API
 %%%===================================================================
 
+%%--------------------------------------------------------------------
+%% @doc Start a linked task.
+%% @equiv start_link(Module, Args, [])
+%% @end
+%%--------------------------------------------------------------------
+
 start_link(Module, Args) ->
     start_link(Module, Args, []).
+
+%%--------------------------------------------------------------------
+%% @doc Start a linked task.
+%%
+%% Refer to {@link e2_service:start_link/3} for details.
+%%
+%% @spec start_link(Module, Args, Options) -> {ok, Pid} | {error, Reason}
+%% @end
+%%--------------------------------------------------------------------
 
 start_link(Module, Args, Options) ->
     {ServiceOpts, TaskOpts} = e2_service_impl:split_options(Module, Options),
     e2_service:start_link(?MODULE, {Module, Args, TaskOpts}, ServiceOpts).
 
+%%--------------------------------------------------------------------
+%% @doc Runs the task.
+%%
+%% If the task is repeating, this will not cause subsequent task runs.
+%%
+%% @spec (Task) -> ok
+%% Task = atom() | pid()
+%% @end
+%%--------------------------------------------------------------------
+
 run_once(Task) ->
     e2_service:cast(Task, '$run').
+
+%%--------------------------------------------------------------------
+%% @doc Sends a message to a task and waits for a reply.
+%% @equiv call(Task, Msg, infinity)
+%% @end
+%%--------------------------------------------------------------------
 
 call(Task, Msg) ->
     e2_service:call(Task, Msg).
 
+%%--------------------------------------------------------------------
+%% @doc Sends a message to a task and waits for a reply.
+%% @spec (Task, Msg, Timeout) -> Reply
+%% Task = atom() | pid()
+%% Msg = term()
+%% Timeout = integer() | infinity
+%% Reply = term()
+%% @end
+%%--------------------------------------------------------------------
+
 call(Task, Msg, Timeout) ->
     e2_service:call(Task, Msg, Timeout).
+
+%%--------------------------------------------------------------------
+%% @doc Sends a message to a task without waiting for a reply.
+%% @spec (Task, Msg) -> ok
+%% Task = atom() | pid()
+%% Msg = term()
+%% @end
+%%--------------------------------------------------------------------
 
 cast(Task, Msg) ->
     e2_service:cast(Task, Msg).
@@ -40,10 +107,12 @@ cast(Task, Msg) ->
 %%% e2_service callbacks
 %%%===================================================================
 
+%% @private
 init({Module, Args, TaskOpts}) ->
     e2_service_impl:set_trap_exit(Module),
     dispatch_init(Module, Args, TaskOpts, init_state(Module)).
 
+%% @private
 handle_msg('$task', noreply, State) ->
     dispatch_handle_task(set_start(State));
 handle_msg('$run', noreply, State) ->
@@ -55,6 +124,7 @@ handle_msg(Msg, From, #state{mod=Module, mod_state=ModState0}=State) ->
         e2_service_impl:dispatch_handle_msg(Module, Msg, From, ModState0),
     e2_service_impl:handle_msg_result(Result, set_mod_state(ModState, State)).
 
+%% @private
 terminate(Reason, State) ->
     dispatch_terminate(Reason, State).
 

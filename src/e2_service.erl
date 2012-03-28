@@ -1,3 +1,20 @@
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc e2 service behavior.
+%%
+%% e2 services are the base process type in e2.
+%%
+%% e2 services provide the same functionality as
+%% [http://www.erlang.org/doc/man/gen_server.html gen_server] but with
+%% a simplified interface.
+%%
+%% For more information see [http://e2project.org/services.html e2
+%% services] documentation.
+%% @end
+%% ===================================================================
+
 -module(e2_service).
 
 -behaviour(gen_server).
@@ -9,6 +26,7 @@
 
 -export([behaviour_info/1]).
 
+%% @private
 behaviour_info(callbacks) -> [{handle_msg, 3}].
 
 -record(state, {mod, mod_state, timeout_msg}).
@@ -17,16 +35,33 @@ behaviour_info(callbacks) -> [{handle_msg, 3}].
 %%% API
 %%%===================================================================
 
+%%--------------------------------------------------------------------
+%% @doc Starts an e2 service.
+%% @equiv start_link(Module, Args)
+%% @end
+%%--------------------------------------------------------------------
+
 start_link(Module, Args) ->
     start_link(Module, Args, []).
 
 %%--------------------------------------------------------------------
-%% @doc Starts a service.
+%% @doc Starts an e2 service.
+%%
+%% Module is the service callback module.
+%%
+%% If `init/1' is exported, Args is the argument passed to the function
+%% when the service is initialized. If `init/1' is not exported, Args
+%% is the initial service state.
+%%
+%% If `register' or `{register, Name}' is provided as an option, the
+%% service will be registered. If not specified, the registered name
+%% defaults to Module.
+%%
 %% @spec start_link(Module, Args, Options) -> {ok, Pid} | {error, Reason}
 %% Module = atom()
 %% Args = term()
-%% Options = [option()]
-%% option() = registered | {registered, Name}
+%% Options = [Option]
+%% Option = registered | {registered, Name}
 %% Name = atom()
 %% @end
 %%--------------------------------------------------------------------
@@ -34,14 +69,50 @@ start_link(Module, Args) ->
 start_link(Module, Args, Options) ->
     start_gen_server(server_name(Module, Options), Module, Args, Options).
 
+%%--------------------------------------------------------------------
+%% @doc Sends a message to a service and waits for a reply.
+%% @equiv call(ServiceRef, Msg, infinity)
+%% @end
+%%--------------------------------------------------------------------
+
 call(ServiceRef, Msg) ->
     call(ServiceRef, Msg, infinity).
+
+%%--------------------------------------------------------------------
+%% @doc Sends a message to a service and waits for a reply.
+%% @spec (ServiceRef, Msg, Timeout) -> Reply
+%% ServiceRef = atom() | pid()
+%% Msg = term()
+%% Timeout = integer() | infinity
+%% Reply = term()
+%% @end
+%%--------------------------------------------------------------------
 
 call(ServiceRef, Msg, Timeout) ->
     gen_server:call(ServiceRef, {'$call', Msg}, Timeout).
 
+%%--------------------------------------------------------------------
+%% @doc Sends a message to a service without waiting for a reply.
+%% @spec (ServiceRef, Msg) -> ok
+%% ServiceRef = atom() | pid()
+%% Msg = term()
+%% @end
+%%--------------------------------------------------------------------
+
 cast(ServiceRef, Msg) ->
     gen_server:cast(ServiceRef, {'$cast', Msg}).
+
+%%--------------------------------------------------------------------
+%% @doc Used by service implementations to reply to a message.
+%%
+%% Client is the `From' argument from the request `handle_msg/3'
+%% call.
+%%
+%% @spec reply(Client, Reply) -> any()
+%% Client = term()
+%% Reply = term()
+%% @end
+%%--------------------------------------------------------------------
 
 reply(Client, Reply) ->
     gen_server:reply(Client, Reply).
@@ -50,24 +121,30 @@ reply(Client, Reply) ->
 %%% gen_server callbacks
 %%%===================================================================
 
+%% @private
 init({Module, Args}) ->
     maybe_trap_exit(Module),
     dispatch_init(Module, Args, init_state(Module)).
 
+%% @private
 handle_call({'$call', Msg}, From, State) ->
     dispatch_call(Msg, From, State).
 
+%% @private
 handle_cast({'$cast', Msg}, State) ->
     dispatch_cast(Msg, State);
 handle_cast(_Msg, State) ->
     {noreply, State}.
 
+%% @private
 handle_info(Msg, State) ->
     dispatch_info(Msg, State).
 
+%% @private
 terminate(Reason, State) ->
     dispatch_terminate(Reason, State).
 
+%% @private
 code_change(_OldVsn, State, _Extra) ->
     {ok, State}.
 

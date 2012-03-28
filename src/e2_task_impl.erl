@@ -1,3 +1,13 @@
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc Utility module for implementing custom e2 tasks or task
+%% behavior within a non-task service.
+%% @see e2_service_impl
+%% @end
+%% ===================================================================
+
 -module(e2_task_impl).
 
 -export([start_repeat/2, start_repeat/3, next_repeat/1]).

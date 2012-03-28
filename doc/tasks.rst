@@ -89,3 +89,18 @@ Here's how a task can be started with an initial delay of 5 seconds:
 .. code-block:: erlang
 
    e2_task:start_link(?MODULE, Args, [{delay, 5000}]).
+
+Examples
+========
+
+The  `examples/tasks`_ project illustrates various task uses.
+
+Here's a task that is used in `examples/calc`_ to handle client connections:
+
+.. literalinclude:: ../examples/calc/src/calc_handler.erl
+   :language: erlang
+
+.. _examples/tasks: https://github.com/gar1t/e2/tree/master/examples/tasks
+.. _examples/calc: https://github.com/gar1t/e2/tree/master/examples/calc
+
+

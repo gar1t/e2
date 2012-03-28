@@ -1,3 +1,19 @@
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc e2 application behavior.
+%%
+%% e2 applications combine OTP applications and the top level supervisor
+%% into one construct, though each is implemented as a separate module.
+%%
+%% Refer to [http://e2project.org/applications.html e2 application]
+%% documentation for more details.
+%%
+%% @see e2_application_sup
+%% @end
+%% ===================================================================
+
 -module(e2_application).
 
 -behavior(application).
@@ -6,24 +22,45 @@
 
 -export([behaviour_info/1]).
 
+%% @private
 behaviour_info(callbacks) -> [].
 
 %%%===================================================================
 %%% API
 %%%===================================================================
 
-start(normal, [E2App]) when is_atom(E2App) ->
-    e2_application_sup:start_link(E2App).
-
-stop(_State) ->
-    ok.
+%%--------------------------------------------------------------------
+%% @doc Start an application along with its dependencies.
+%% @spec (App) -> ok | {error, Reason}
+%% App = atom()
+%% @end
+%%--------------------------------------------------------------------
 
 start_dependencies(App) ->
     start_apps(get_dependencies(App)).
 
+%%--------------------------------------------------------------------
+%% @doc Start an application's dependencies.
+%% @spec (App) -> ok | {error, Reason}
+%% App = atom()
+%% @end
+%%--------------------------------------------------------------------
+
 start_with_dependencies(App) ->
     start_dependencies(App),
     application:start(App).
+
+%%%===================================================================
+%%% application callbacks
+%%%===================================================================
+
+%% @private
+start(normal, [E2App]) when is_atom(E2App) ->
+    e2_application_sup:start_link(E2App).
+
+%% @private
+stop(_State) ->
+    ok.
 
 %%%===================================================================
 %%% Internal functions

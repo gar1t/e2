@@ -1,3 +1,14 @@
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc e2 publisher behavior.
+%%
+%% For an example on how a pub/sub facility can be used, see
+%% [https://github.com/gar1t/e2/tree/master/examples/pubsub examples/pubsub].
+%% @end
+%% ===================================================================
+
 -module(e2_publisher).
 
 -behavior(e2_service).
@@ -77,10 +88,12 @@ cast(Publisher, Msg) ->
 %%% Service callbacks
 %%%===================================================================
 
+%% @private
 init({Module, Args, _Options}) ->
     e2_service_impl:set_trap_exit(Module),
     dispatch_init(Module, Args).
 
+%% @private
 handle_msg({'DOWN', _Ref, process, Pid, _Info}, noreply, State0) ->
     {noreply, remove_all_subscribers(Pid, State0)};
 handle_msg({'$sub', Pattern, Compiled, Subscriber}, _From, State0) ->
@@ -97,6 +110,7 @@ handle_msg({'$pub', Msg}, _From, State) ->
 handle_msg(Msg, From, State) ->
     dispatch_msg(Msg, From, State).
 
+%% @private
 terminate(Reason, State) ->
     dispatch_terminate(Reason, State).
 

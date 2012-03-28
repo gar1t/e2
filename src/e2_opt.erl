@@ -1,3 +1,15 @@
+%% ===================================================================
+%% @author Garrett Smith <g@rre.tt>
+%% @copyright 2011-2012 Garrett Smith
+%%
+%% @doc e2 option validation utility.
+%%
+%% For example in how this facility can be used to validate options
+%% lists, see [https://github.com/gar1t/e2/blob/master/test/e2_opt_tests.erl
+%% test/e2_opt_tests.erl].
+%% @end
+%% ===================================================================
+
 -module(e2_opt).
 
 -export([validate/2, validate/3, value/2, value/3]).
