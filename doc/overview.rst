@@ -50,7 +50,7 @@ e2 reflects Erlang's core design principle: performance and developer
 productivity are important, but should not come at the expense of software
 reliability and maintainability.
 
-.. rubric:: Next Steps
+.. rubric:: Enough Talk!
 
 .. toctree::
    :maxdepth: 1

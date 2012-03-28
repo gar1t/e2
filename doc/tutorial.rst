@@ -6,31 +6,32 @@ e2 lets you use Erlang to build better quality software in less time. This
 tutorial guide will walk you through an example of that process.
 
 We're done with "hello world" examples here -- that's way too easy. Let's shoot
-for something useful...
+for something more interesting...
 
 A database server!
 
 Of course, there are hundreds of ready made databases we could use "off the
 shelf". Why tackle the hard problem ourselves?
 
-Aside from the fact this is a tutorial and we'll learn a lot,
+Aside from the fact this is a tutorial and we'll learn a lot, sometimes it just
+makes sense to build something yourself.
 
-The "build" vs. "buy" consideration is as old as the software industry
-itself. The explosion of quality open source software gives us even more "buy"
+The *build* vs. *buy* consideration is as old as the software industry
+itself. The explosion of quality open source software gives us even more *buy*
 options (even if we're not paying for licenses). Changes are good that you'll
 find something on github that is close to meeting your needs.
 
-The problem with "buy" options has always been that you're taking a solution to
+The problem with buy options has always been that you're taking a solution to
 someone else's problem and applying it to your own. You must often adapt the
 off-the-shelf component to meet your needs -- or, worse, adapt your needs to
 the software!
 
-In this tutorial example, we'll demonstrate how you can use Erlang to
-"build" a solution to your problem -- it will contain no more or no less
-functionality than we need.
+In this tutorial example, we'll demonstrate how you can use Erlang to build a
+solution to your problem -- it will contain no more or no less functionality
+than we need.
 
-The Problem Definition
-======================
+Problem Definition
+==================
 
 The single most important step in software development is understanding what
 your problem is. In fact, that's the real problem! Developers too often start
@@ -41,11 +42,10 @@ Let's not make that mistake!
 Of course, this is an example, so we can make up any problem and be 100%
 correct! But let's at least make it sound good.
 
-In this example, we want to let multiple clients store and retrieve strings. We
-also want to perform special validation on values before they're stored. We
-could use something like stored procedures in a relational database to
-implement this, but let's see how far we get with something very simple and
-direct.
+In this example, we'll let multiple clients store and retrieve strings. We also
+want to perform special validation on values before they're stored. We could
+use something like stored procedures in a relational database to implement
+this, but let's see how far we get with something very simple and direct.
 
 Here's what we're looking for:
 
@@ -80,25 +80,17 @@ Compile e2::
 Create an Empty e2 Project
 ==========================
 
-Create a directory for your new project. We'll refer to this as ``APP_DIR`` in
-examples.
-
-::
-
-   $ export APP_DIR=~/e2-tutorial
-   $ mkdir $APP_DIR
-
 From ``E2_HOME`` use the ``new-project`` make target to create a new project
 skeleton. We'll call our application "mydb" [#mydb]_.
 
 ::
 
    $ cd $E2_HOME
-   $ make new-project appid=mydb appdir=$APP_DIR
+   $ make new-project appid=mydb appdir=~/e2-tutorial
 
 Compile your new project::
 
-   $ cd $APP_DIR
+   $ cd ~/e2-tutorial
    $ make
 
 Run your project in an Erlang shell::
@@ -139,7 +131,8 @@ to this:
        io:format("### stopping mydb~n"),
        application:stop(mydb).
 
-Compile the changes by running the ``make quick`` command [#make_quick]_::
+Save you changes and compile them by running the ``make quick`` command
+[#make_quick]_::
 
    $ make quick
 
@@ -157,8 +150,8 @@ Test your change in the shell:
 You get an error because the ``mydb`` application isn't started. That's okay --
 this is just an illustration of developer workflow.
 
-While Erlang provides a sophisticated debugger, you will often find it faster
-to use temporary io:format/2 commands to track down problems.
+Here we used `io:format/1`_ to print something to the shell -- as it turns out,
+that's a very useful way to debug your applications!
 
 Let's revert that change by deleting the ``io:format("### stopping mydb~n"),``
 line and recompiling.
@@ -188,9 +181,9 @@ right -- let's just think out loud:
 
 Anything else?
 
-Who cares! That's certain enough to get started. We could spend ages perfecting
-a design, or dive right in, solve easy problems by experimentation, and worry
-about "the rest" after we've made some progress.
+Who cares! That's certainly enough to get started. We could spend ages
+perfecting a design, or dive right in, solve easy problems by experimentation,
+and worry about the rest after we've made some progress.
 
 Storage Engine
 ==============
@@ -201,13 +194,13 @@ some sort of storage engine.
 While we could be really ambitious and write our own, Erlang happens to have
 something that we can start with -- the `dets module`_.
 
-Take a moment to scan through the documentation on `dets`. This may also be a
+Take a moment to scan through the documentation on ``dets``. This may also be a
 good time to glance over the :doc:`list of frequently used modules
 <erlang_modules>`. Erlang is a language with "batteries included" and it will
 help you to know what's available.
 
-There's a lot of detail in the `dets` module -- let's sketch out what we think
-we'll need before doing a deep dive:
+There's a lot of detail in the ``dets`` module -- let's sketch out what we
+might need before doing a deep dive:
 
 - Write a keyed value
 - Retrieve a value with a key
@@ -217,18 +210,18 @@ we'll need before doing a deep dive:
 The last point comes up because we want to let more than one client access the
 database at the same time.
 
-Note the statement in the `dets` documentation:
+Note the statement in the ``dets`` documentation:
 
   *[The] Mnesia application (or some user implemented method for locking) has
   to be used to implement safe concurrency.*
 
-This is good to know! We'll need to consider this when accessing any `dets`
+This is good to know! We'll need to consider this when accessing any ``dets``
 files.
 
 Data Access API
 ===============
 
-With your editor, create the file ``$APP_DIR/src/mydb_db.erl`` as follows:
+With your editor, create the file ``~/e2-tutorial/src/mydb_db.erl`` as follows:
 
 .. literalinclude:: ../examples/mydb/src/mydb_db.part.1
    :language: erlang
@@ -238,8 +231,8 @@ This is our basic data API. Let's implement one function at a time.
 Creating a New Data File
 ------------------------
 
-Looking through the `dets` documentation, it looks like `dets:open_file/2`_ is
-what we need for both creating and opening an data file.
+Looking through the documentation, it looks like `dets:open_file/2`_ is what we
+need for both creating and opening an data file.
 
 Update the ``open/1`` function to look like this:
 
@@ -254,7 +247,7 @@ Inserting New Items
 -------------------
 
 It's looks like we want the `dets:insert/2`_ function for adding values to a
-`dets` file.
+``dets`` file.
 
 Modify our ``put/3`` function to look like this:
 
@@ -267,7 +260,7 @@ Also very simple!
 Retrieving Items
 ----------------
 
-`dets` provides a dizzying array of lookup functions. Fortunately, our case is
+``dets`` provides a dizzying array of lookup functions. Fortunately, our case is
 very simple -- we can use `dets:lookup/2`_.
 
 ``get/2`` should now look like this:
@@ -343,7 +336,9 @@ And correct it::
 This is a not-so-obvious, but very useful feature in Erlang! Alas, the details
 are out of scope for this tutorial.
 
-When this happens, you can re-create the ``Db`` variable this way::
+When this happens, you can re-create the ``Db`` variable this way: [#reassign]_
+
+::
 
    > {ok, Db} = mydb_db:open("/tmp/test.db").
 
@@ -386,9 +381,7 @@ And add ``handle_dets_lookup/1`` to the module:
    :language: erlang
    :lines: 17-18
 
-Recompile your changes and test the new behavior!
-
-::
+Recompile your changes and test the new behavior::
 
    > mydb_db:put(Db, "msg", "Erlang is elegant!").
    ok
@@ -399,7 +392,7 @@ Recompile your changes and test the new behavior!
    > mydb_db:get(Db, "msg").
    error
 
-Now that's a clean API!
+Nice!
 
 What About ``case``?
 --------------------
@@ -422,11 +415,8 @@ operation. For one, you need to answer the question, "what am I going to call
 this silly thing?" That process alone is helpful -- naming things is hard, but
 good names help clarify what's going on.
 
-Arguably, "handle_xxx_result" is a lazy man's function name! Though in this
-case it's not far off the mark -- we're handling the result of our dets lookup
-operation. And even if the name is substandard, the code couldn't be clearer --
-we're translating the funny result from `dets` into something appropriate for
-our application.
+You may also find the "case" worthy of a function if it becomes complex
+enough.
 
 Of course, you're perfectly free to use case statements. But you at least feel
 a little guilty -- you're missing a great chance to clarify what you're doing
@@ -448,12 +438,12 @@ But why do that? TCP isn't that hard after all. And we can use ``telnet`` to
 test!
 
 Let's imagine for a moment a hypothetical ``telnet`` session with our database
-server, which is running locally on port 1234. In the sample session below,
-lines preceded with ">> " are lines you would type followed by ENTER and the
-rest are lines that telnet prints. The ``^`` character indicates the CTRL
-character is held down when typing the following character.
+server, running locally on port 1234. In the sample session below, lines
+preceded with ">> " are lines you would type followed by ENTER and the rest are
+lines that telnet prints. The ``^`` character indicates the CTRL character is
+held down when typing the following character.
 
-::
+Again, this is only a hypothetical "what it might look like"::
 
    $ telnet 127.0.0.1 1234
    Trying 127.0.0.1...
@@ -485,13 +475,13 @@ Let's not think too much here -- we know that we need to parts here:
 - Something listening on a TCP port for incoming client connections
 - Something to handle client connections
 
-Each of these "somethings" maps to an e2 :doc:`task <tasks>`. Tasks are
-single minded processes -- they perform some work and stop, or they start the
+Each of these "somethings" maps to an :doc:`e2 task <tasks>`. Tasks are single
+minded processes -- they perform some work and stop, or, if need be, start the
 work again.
 
 In the case of the "listener", we want a task that binds to a local port, waits
-for a connection, starts a handler for that connection, and resumes waiting for
-another connection.
+for a connection, starts a handler for that connection, and resumes the process
+of waiting for another connection.
 
 In the case of the "handler", we want a task that interacts with a client
 connection until that connection is closed or there's an error.
@@ -499,19 +489,23 @@ connection until that connection is closed or there's an error.
 Database Server Listener
 ========================
 
-Create the file ``$APP_DIR/src/mydb_server.erl``:
+Create the file ``~/e2-tutorial/src/mydb_server.erl``:
 
 .. literalinclude:: ../examples/mydb/src/mydb_server.part.1
    :language: erlang
 
 Whoa -- that's a lot of code!
 
-Before we break it down, let's compile and run it.
-
-::
+Before we break it down, let's try it. First, compile your changes. Then run
+the following in the Erlang shell::
 
    > {ok, Server} = mydb_server:start_link(1234).
    {ok, <0,XX,0>}
+
+And... wait for it...
+
+::
+
    TODO: dispatch client fake_client_socket
    TODO: dispatch client fake_client_socket
    ...
@@ -525,7 +519,7 @@ stop it. Let's terminate our task:
    ** exception exit: shutdown
 
 We now have a "listener" that doesn't really listen to anything -- but it does
-stub out all of the functionality we want. Let's look more closely.
+stub out the functionality we want. Let's look more closely.
 
 Task Behavior
 -------------
@@ -543,7 +537,7 @@ need to export ``handle_task/1``.
 Task Exports
 ------------
 
-We've take the trouble to create two lists of exports for our module:
+We took the trouble to create two lists of exports for our module:
 
 .. literalinclude:: ../examples/mydb/src/mydb_server.part.1
    :language: erlang
@@ -560,7 +554,7 @@ Starting the Task
 ``start_link/1`` is called to start our server. It takes one argument -- the
 port to listen on.
 
-As a behavior callback module, ``mydb_server`` delegates its start to its
+As a behavior callback module, ``mydb_server`` delegates *start* to its
 behavior module -- in this case ``e2_task``.
 
 .. literalinclude:: ../examples/mydb/src/mydb_server.part.1
@@ -568,9 +562,9 @@ behavior module -- in this case ``e2_task``.
    :lines: 9-10
 
 Here we provide the callback module ``?MODULE``, which is an alias for the
-``mydb_server``, the port we want to listen on. The module will be used when
-calling functions like ``init/1`` and ``handle_task/1``. The port will be used
-as an argument to ``init/1``.
+``mydb_server``, and the port we want to listen on. The module will be used
+when calling functions like ``init/1`` and ``handle_task/1``. The port will be
+used as an argument to ``init/1``.
 
 Initializing the Task
 ---------------------
@@ -581,10 +575,10 @@ Initializing the Task
    :language: erlang
    :lines: 12-13
 
-The init result defines the task *state* that will be provided in the first
+The init result defines the initial task *state*, which is used in the first
 call to ``handle_task/1``.
 
-What's the point of a separate "init" phase -- why not consolidate the startup
+What's the point of a separate *init* phase -- why not consolidate the startup
 logic in the "start" function?
 
 This is a nuanced point that gets to the heart of Erlang's application
@@ -594,7 +588,7 @@ they're called in the context of a *server* process.
 
 It's important to understand and recognize this distinction.
 
-``start_link/1`` is called in the context of the client process -- ``init/1``
+``start_link/1`` is called in the context of the client process. ``init/1``
 is called in the context of the server process. A general in Erlang is this:
 processes are black boxes -- you start them and they run. All the grimy details
 associated with the process are performed by the process -- and die with the
@@ -607,7 +601,7 @@ or complex process initialization in ``init/1``.
 Handling Client Connections
 ---------------------------
 
-As soon as our server is initialized, it "handles" incoming client
+As soon as our server is initialized, it *handles* incoming client
 connections.
 
 .. literalinclude:: ../examples/mydb/src/mydb_server.part.1
@@ -652,7 +646,7 @@ our ``wait_for_client/1`` function:
 This function will block until a client establishes a TCP connection with our
 server port. It's okay to block here -- the server is a *task*, which means
 it runs in a separate process. It can happily block, waiting for connections,
-while other Erlang processes run uninhibited!
+while other Erlang processes run free!
 
 Testing The Server
 ------------------
@@ -660,11 +654,19 @@ Testing The Server
 Now that our server can listen to a port and accept incoming client
 connections, let's test it!
 
-Start a new server in your running Erlang shell::
+Start a new server in your running Erlang shell: [#s2]_
 
-   > mydb_server:start_link(1234).
+::
 
-This time the server is actually listening on port 1234!
+   > {ok, S2} = mydb_server:start_link(1234).
+
+.. note:: If you made a mistake and something went wrong, don't fear! The
+   easiest way to get back to a clean slate is to exit the shell by typing
+   ``CTRL-C`` twice and restarting it using ``make shell``. Then re-type what
+   you missed above.
+
+If everything went according to plan, you're server is actually listening on
+port 1234!
 
 Test the server using ``telnet``::
 
@@ -672,7 +674,7 @@ Test the server using ``telnet``::
 
 In your Erlang shell, note the output::
 
-   TODO: dispatch client #Port<0.XXXX>
+   TODO: dispatch client #Port<0.XXX>
 
 Your server is dealing with real life client connections! Only it's not -- we
 still have to implement that part.
@@ -685,10 +687,10 @@ Client Handlers
 Now that we're accepting client connection, let's create something to handle
 them!
 
-We want another task type -- in this case, the task is to interact with clients
-until they close the connection or there's an error.
+We want another task type -- we want to interact with clients until they close
+the connection or there's an error.
 
-Create the file ``$APP_DIR/src/mydb_client_handler.erl``:
+Create the file ``~/e2-tutorial/src/mydb_client_handler.erl``:
 
 .. literalinclude:: ../examples/mydb/src/mydb_client_handler.part.1
    :language: erlang
@@ -700,8 +702,8 @@ connection.
 Using the Handler
 -----------------
 
-To see this new task in action, we need to start it when we gen a new client
-connection. Fortunately, it's easy!
+To see this new task in action, we need to start it when we get a new client
+connection. It's easy!
 
 In ``mydb_server.erl``, modify ``dispatch_client/1`` as follows:
 
@@ -709,11 +711,23 @@ In ``mydb_server.erl``, modify ``dispatch_client/1`` as follows:
    :language: erlang
    :lines: 27-28
 
+Compile your changes.
+
 Now when we get a new client connection, we'll start a task to handle it.
 
-Compile you changes and use ``telnet`` to test the new behavior.
+Before we can test this, we need to stop our running server -- we left some
+client connections in a wait state by not closing them explicitly in our
+previous iteration. In the Erlang shell, stop the server this way::
 
-::
+   > exit(S2, shutdown).
+   ** exception exit: shutdown
+
+Now we can start a new server::
+
+  > {ok, S3} = mydb_server:start_link(1234).
+  {ok,<0.XX.0>}
+
+Let's see what happens now when we connect using ``telnet``::
 
    $ telnet 127.0.0.1 1234
    Trying 127.0.0.1...
@@ -733,19 +747,19 @@ see if it works, then enhance it until we get what we want.
 In that tradition, let's modify our client handler just enough to get a feel
 for a client interaction.
 
-Modify ``handle_task/1`` as follows:
+In ``mydb_client_handler.erl`` modify ``handle_task/1`` as follows:
 
 .. literalinclude:: ../examples/mydb/src/mydb_client_handler.part.2
    :language: erlang
    :lines: 12-13
 
-We're using two yet-to-be-defined functions here: ``read_line/1`` and
-``handle_command_line/2``. This is a good illustration of how functions can
-be used to symbolically represent your problem/solution. This is a single line
-function that makes it absolutely clear what it means to handle a "client
-task". We don't yet know what it means to "handle a command line", but we
-know -- or more accurately, we're *declaring* -- that the task is to handle a
-single command, which is derived from a single line read from a socket.
+We're using two yet-to-be-defined functions: ``read_line/1`` and
+``handle_command_line/2``. This illustrates how functions can be used to
+symbolically represent your problem/solution. This is a single line function
+that makes it absolutely clear what it means to handle a "client task". We
+don't yet know what it means to "handle a command line", but we know -- or more
+accurately, we're *declaring* -- that the task is to handle a single command,
+which is derived from a single line read from a socket.
 
 Let's define the two missing functions. First ``read_line/1``:
 
@@ -765,14 +779,15 @@ Next, let's stub out some basic command handling support in
 
 This function handles two cases:
 
-- If we get data from a client, it prints it so we can see what it looks like
-- If we get an error, it stops the task with an error condition -- we'll see in
-  a moment what that does
+- If we get data from a client, print it so we can see what it looks like
+- If we get an error, stop the task with an error condition (we'll see in a
+  moment what this looks like)
 
-Let's now test the behavior using ``telnet``. Note that lines prefixed by ``">>
-"`` below indicate text that you should type, followed by ``ENTER``. For
-example, when you see ``">> GET msg"`` type ``GET msg`` and then press
-``ENTER``.
+Now let's test the behavior using ``telnet``.
+
+.. note:: Lines prefixed by ``>>`` below indicate text that you should type,
+   followed by ``ENTER``. For example, when you see ``>> GET msg`` type ``GET
+   msg`` and then press ``ENTER``.
 
 ::
 
@@ -798,13 +813,12 @@ Note what happened in your Erlang shell::
    ...
    ** Reason for termination ==
    ** {socket_err,closed}
-   ** exception error: {socket_err,closed}
 
 We can see our commands very clearly represented as Erlang strings. That should
 be pretty easy to handle!
 
 When we closed the client telnet session, we got a big error. We can see that
-the "reason" for the error was that the socket was closed.
+the *reason* for the error was that the socket was closed.
 
 We'll use this information in the next step to better handle these cases.
 
@@ -817,7 +831,7 @@ sort of functionality we need:
 - We need to handle specific commands
 - To handle specific commands, we'll need to parse the command line
 - We should gracefully handle the case when the socket is closed by the client
-  -- the right action is to stop without triggering an error
+  -- let's just stop the task normally
 
 Here's the new ``handle_command_line/2`` function:
 
@@ -834,7 +848,8 @@ Our command parsing is pretty simple. Commands look like this::
 
    <COMMAND> SPACE <ARGUMENT> CRLF
 
-We can use Erlang's excellent regular expression support for this:
+We can use Erlang's excellent regular expression support for this. Add the
+these new functions to ``mydb_client_handler.erl``:
 
 .. literalinclude:: ../examples/mydb/src/mydb_client_handler.part.3
    :language: erlang
@@ -842,7 +857,7 @@ We can use Erlang's excellent regular expression support for this:
 
 For more information on the options used, see `re:run/3`_.
 
-Note that we again used a "handler" function to translate the results of
+Note that we again used a *handler* function to translate the results of
 ``re:run/3`` to something appropriate for our use. We could easily have used a
 case statement -- but the function more formally represents our logic.
 
@@ -881,30 +896,31 @@ details later:
 
 We already have the database support -- so plugging this in later will be easy!
 
-And finally, here's the logic for handling replies:
+Finally, here's the logic for handling replies:
 
 .. literalinclude:: ../examples/mydb/src/mydb_client_handler.part.3
    :language: erlang
    :lines: 55-57
 
-You're probably sick of these trivial, short functions!
+You're probably sick of these short, trivial functions that use other short,
+trivial functions!
 
 Let's take a moment to review why we write code this way:
 
-- Short, focused functions are easier to read and understand
-- Short, focused functions solve trivial problems
-- Trivial problems are easy to solve
+- Short, trivial functions are easier to read and understand
+- Short, trivial functions usually solve trivial problems
+- Trivial problems are easy to solve!
 
-The real problem is of course finding problems that are trivial to solve. Most
-problems in software development are initially hard. But by working to break
-the problems into smaller, integral sub problems, we can eventually get to the
-point we're solving those elusive easy ones!
+The real problem is of course finding problems that are trivial. Most problems
+in software are initially hard. But by working to break the problems into
+smaller, integral sub problems, we can eventually get to the point we're
+just solving those elusive easy ones!
 
-That's exactly what we've been doing here in building a database! By
+That's exactly what we've been doing here in building a database. By
 systematically thinking about concrete, solvable problems, we slowly but surely
-chaining together trivial solutions that add up to something quite complex.
+chain together trivial solutions that add up to something quite complex.
 
-But enough philosophy -- let's finish our code!
+Confucius say, "Enough philosophy -- let's finish our code already!"
 
 Here's the last piece of our nearly finished task module:
 
@@ -912,7 +928,7 @@ Here's the last piece of our nearly finished task module:
    :language: erlang
    :lines: 59-64
 
-Again, this is pretty simple. We have three cases we need to accommodate:
+This function handles three cases:
 
 - Sending a value
 - Sending an "OK"
@@ -929,10 +945,10 @@ Compile the changes and let's test them with ``telnet``.
 We need to restart the server because of the error from our last test. In your
 running Erlang shell, run::
 
-   > mydb_server:start_link(1234).
+   > {ok, S4} = mydb_server:start_link(1234).
 
 Using ``telnet``, let's connect to our server and try out some commands. As
-before, lines starting with ``">> "`` represent commands that you type,
+before, lines starting with ``>>`` represent commands that you type,
 followed by ``ENTER``.
 
 ::
@@ -953,8 +969,8 @@ followed by ``ENTER``.
    >> quit
    Connection closed.
 
-Wow! Setting aside the fact that our values aren't stored or retrieved, this is
-a pretty cool database!
+Wow! Aside from the fact that our values aren't stored or retrieved, this is a
+pretty cool database!
 
 Data Access
 ============
@@ -972,26 +988,27 @@ functions -- just to see what it would look like:
 
 That looks perfect! Except that ``Db`` isn't defined. How are we going to solve
 this? Erlang, after all, doesn't have global variables -- we can't just write
-to some shared heap and grab a reference to our database!
+to a shared heap and grab a reference to our database!
 
 There are two ways to deal with this:
 
-- When a ``mydb_client_handler`` is started, specify a database reference as an
-  argument
+- When a client handler process is started using
+  ``mydb_client_handler:start_link``, specify a database reference as an
+  additional argument
 - Run a registered database service within the application
 
 This is a legitimate design consideration -- either approach is valid and would
 work. Let's think through the issues.
 
-- If we added a ``Db`` argument to ``mydb_client_handler:start_link/``, we're
-  making it slightly harder to start a handler task -- in general, in Erlang,
-  you want to make it easier to start processes, not harder
+- If we added a ``Db`` argument to ``mydb_client_handler:start_link``, we're
+  making it slightly harder to start a handler task. Generally, in Erlang, you
+  want to make it easier to start processes, not harder.
 
 - The database file is a shared resources -- if we let each task have direct
-  access to it, we might run into concurrency related problems
+  access to it, we might run into concurrency related problems.
 
 - Since e2 is "service oriented", maybe creating a separate data access
-  *service* won't be that hard
+  *service* won't be that hard. Hmmm.
 
 Registered services are Erlang's equivalent of `singletons`_. This is really
 what we want -- something that's "just there" that we can use. Our code could
@@ -1007,7 +1024,7 @@ Data Server
 
 Building services in e2 is easy.
 
-Create the file ``$APP_DIR/src/mydb_data.erl``:
+Create the file ``~/e2-tutorial/src/mydb_data.erl``:
 
 .. literalinclude:: ../examples/mydb/src/mydb_data.erl
    :language: erlang
@@ -1033,7 +1050,9 @@ Now try some database operations::
 
 Provided we can start this service, our client handlers can us this API without
 worrying about a ``Db`` reference. This is the value of a *service* -- as long
-as the service is available, it's easy to use!
+as it's running, just use it!
+
+Let's take a moment to review this new service of ours.
 
 Service Behavior
 ----------------
@@ -1052,7 +1071,7 @@ Service Exports
 ---------------
 
 We see here the separate listing of *public* functions and *callback*
-functions. This is not strictly necessary, but is a convention in Erlang.
+functions.
 
 .. literalinclude:: ../examples/mydb/src/mydb_data.erl
    :language: erlang
@@ -1078,33 +1097,33 @@ Initializing the Service
 ------------------------
 
 Our service provides access to a single database. We open this database as a
-part of the service initialization. This is exactly what we did earlier when we
+part of the *service initialization*. This is what we did manually when we
 experimented with the ``mydb_db`` module -- we first opened a database and then
 worked with that reference to test the operations.
 
-In this case, we'll open the database and use that value as our service
+In this case, we'll open the database and use that value as our initial service
 *state*.
 
 .. literalinclude:: ../examples/mydb/src/mydb_data.erl
    :language: erlang
    :lines: 21-22
 
-If you recall, ``init/1`` is called in the context of the server process -- not
-the process that called ``start_link``. This is subtle, but important -- if
-something goes wrong during initialization, the called of ``start_link`` won't
+If you recall, ``init/1`` is called in the context of the *server* process --
+not the process that called ``start_link``. This is subtle, but important -- if
+something goes wrong during initialization, the caller of ``start_link`` won't
 be affected because of Erlang's process isolation guarantees.
 
 Public API
 ----------
 
 The public API is used by client of the service. These functions are called in
-the context of client processes -- not the server process.
+the context of *client* processes -- not the server process.
 
 Each public API function looks similar:
 
 - Use ``e2_service:call/2`` to send a message to the server process
-- ``?MODULE`` is used to reference the registered service (this is an alias for
-  ``mydb_data`` in this case)
+- ``?MODULE`` refers to the registered service (an alias for ``mydb_data`` in
+  this case)
 
 .. literalinclude:: ../examples/mydb/src/mydb_data.erl
    :language: erlang
@@ -1121,18 +1140,18 @@ starts.
 Handling Messages
 -----------------
 
-The public API functions used ``e2_service:call/2`` to send messages to the
-registered service. The service process "handles" these messages in
+The public API functions use ``e2_service:call/2`` to send messages to the
+registered service. The service process *handles* these messages in
 ``handle_msg/3``.
 
-You can see each of the three message sent by the public API functions handled here.
+You can see each of the three message sent by the public API functions handled here:OB
 
 .. literalinclude:: ../examples/mydb/src/mydb_data.erl
    :language: erlang
    :lines: 28-33
 
 Our service "serves" access to a single database (opened in ``init/1`` and
-passed as the third argument to ``handle_msg/3``) -- so each of the three
+passed as the third argument to ``handle_msg/3``). Each of the three
 operations, ``get``, ``put``, and ``del`` are trivially passed along to the
 ``mydb_db`` module.
 
@@ -1156,19 +1175,19 @@ Compile your changes and get ready for some fun!
    Trying 127.0.0.1...
    Connected to 127.0.0.1.
    Escape character is '^]'.
+   >> DEL msg
+   +OK
    >> GET msg
    -ERROR
    >> PUT msg It is alive!
    +OK
    >> GET msg
    +It is alive!
-   >> DEL msg
-   +OK
-   >> GET msg
-   -ERROR
    >> ^]
    >> quit
    Connection closed.
+
+High five!
 
 Putting It All Together
 =======================
@@ -1208,8 +1227,8 @@ In the ``telnet`` session, "GET" a value::
    >> GET msg
    Connection closed by foreign host.
 
-What happened? Something bad! Check the Erlang shell -- you'll see an error
-report that looks something like this::
+Something bad! Check the Erlang shell -- you'll see an error report that looks
+something like this::
 
    =ERROR REPORT==== 25-Mar-2012::17:19:37 ===
    ** Generic server <0.38.0> terminating
@@ -1223,8 +1242,8 @@ This is fancy Erlang speak for "the process you tried to call wasn't running!"
 The problem is that our client handler relies on ``mydb_data`` to be
 started. But we never started it!
 
-That's the nature of service oriented design -- when you use a service, you
-rely on it to be running. If it's not running, you can't use it.
+That's the nature of service oriented design -- to use a service, it must be
+running. If it's not running, you can't use it.
 
 Let's fix this by stating the data service. In the Erlang shell, run::
 
@@ -1237,19 +1256,21 @@ crashed. In the Erlang shell::
 
 Now connect again with ``telnet`` and experiment with the socket protocol.
 
-Great -- if only there was a way to do all this startup work automatically!
+It works!
+
+But if only there was a way to do all this startup work automatically.
 
 Application Startup
 -------------------
 
-In your editor, open the file ``$APP_DIR/src/mydb_app.erl``.
+In your editor, open the file ``~/e2-tutorial/src/mydb_app.erl``.
 
 This file was created automatically when you created the ``mydb`` project.
 
-It even has a little "to do" note for you!
+It even has a little TODO note for you!
 
 The purpose of this module is to list top-level processes that are started when
-the application starts. This sounds perfect!
+the application starts. Perfect!
 
 Modify the file to look like this:
 
@@ -1257,7 +1278,7 @@ Modify the file to look like this:
    :language: erlang
 
 This tells e2, when you start the ``mydb`` application, make sure that
-``mydb_server`` and ``mydb_data`` are started -- they're required!
+``mydb_server`` and ``mydb_data`` are started.
 
 Compile you changes and let's test!
 
@@ -1320,9 +1341,8 @@ Finally, here's the application configuration lookup support:
    :lines: 21-25
 
 ``application:get_env/1`` is used to lookup a configuration value for the
-current application. We'll show how this is used shortly.
-
-Refer to `application:get_env/1`_ for more details.
+current application. We'll show how this is used shortly. Refer to
+`application:get_env/1`_ for more details.
 
 Here's the complete ``mydb_app`` module:
 
@@ -1335,7 +1355,7 @@ Config Files
 Now that our application reads application configuration for the server port
 and database file, let's start our application with some custom settings.
 
-Create the file ``$APP_DIR/test.config`` as follows:
+Create the file ``~/e2-tutorial/test.config`` as follows:
 
 .. code-block:: erlang
 
@@ -1349,7 +1369,7 @@ Save the file and quite the Erlang shell.
 Start the Erlang shell again, but this time, specify some additional options
 that will tell the Erlang VM to read your new configuration::
 
-   $ make opts="-config test" shall
+   $ make opts="-config test" shell
 
 In the Erlang shell, start ``mydb``::
 
@@ -1396,10 +1416,12 @@ This will open a new window, which displayed a tree of running processes:
 
 .. image:: appmon-2.png
 
+.. note:: The process IDs (i.e. the values that look like ``<0.XX.0>``) may be
+   different in your ``appmon`` windows.
+
 Looking at the ``mydb_app`` node, we can see two children: ``mydb_data`` and an
-unregistered service (process ID ``<0.45.0>`` in the example above -- the
-actual value in your ``appmon`` window may be different). These correspond to
-the top-level processes specified in ``mydb_app``.
+unregistered service (process ID ``<0.45.0>`` in the example above). These
+correspond to the top-level processes specified in ``mydb_app``.
 
 The unregistered process (i.e. ``<0.45.0>`` above) is the ``mydb_server`` task
 that is listening on port 2222. It's two children are the client handlers that
@@ -1413,7 +1435,7 @@ client handler processes (e.g. either ``<0.46.0>`` or ``<0.47.0>`` above).
 
 What happened?
 
-Rats! Both ``telnet`` sessions were closed! That's not fault tolerant -- it's
+Rats! *Both* ``telnet`` sessions were closed! That's not fault tolerant -- it's
 fault *intolerant*!
 
 This is the problem: the ``start_link`` functions that we've been using to
@@ -1435,14 +1457,14 @@ Client Handler Supervisor
 
 Let's fix this problem using a supervisor. Here's what we want to do:
 
-- Create supervisor that specializes in start and supervising
+- Create supervisor that specializes in starting and supervising
   ``mydb_client_handler`` tasks
 - Start that supervisor as a top-level process for our app
 - Modify ``mydb_server`` to use the new supervisor to start client handlers,
   rather than start them itself
 
-Create a new file ``$APP_DIR/src/mydb_client_handler_sup.erl`` that looks like
-this:
+Create a new file ``~/e2-tutorial/src/mydb_client_handler_sup.erl`` that looks
+like this:
 
 .. literalinclude:: ../examples/mydb/src/mydb_client_handler_sup.erl
    :language: erlang
@@ -1456,11 +1478,11 @@ this:
   ``mydb_data`` this will registered a single named process that can be
   referenced using ``mydb_client_handler_sup``
 
-``start_handler/1`` starts a new handler, which will be supervised by the task
-supervisor. The default behavior of task supervisors is to *not* restart
+``start_handler/1`` starts a new *handler*, which will be supervised by the
+task supervisor. The default behavior of task supervisors is to *not* restart
 children, regardless of how they terminate. This is what we want in this case
--- restarting with the original client socket would not be the right course in
-many cases.
+(restarting with the original client socket would not be the right course in
+many cases).
 
 - The first argument to ``e2_task_supervisor:start_task/2`` is the supervisor
   reference
@@ -1478,9 +1500,9 @@ Modify ``mydb_app:init/0`` to look like this:
    :lines: 10-14
 
 The order the processes are listed in is important because it determines the
-order the processes are started in. In this case, we want to make sure both
-``mydb_data`` and ``mydb_client_handler_sup`` are available *before* we start
-accepting client connections with ``mydb_server``.
+order in which the processes are started. In this case, we want to make sure
+both ``mydb_data`` and ``mydb_client_handler_sup`` are available before we
+start accepting client connections with ``mydb_server``.
 
 Finally, let's modify ``mydb_server:dispatch_client/1`` to use the supervisor
 instead of starting the client handler itself:
@@ -1501,7 +1523,7 @@ Now that we've fixed our fault *intolerance* problem, let's run our test again:
    $ make opts="-config test -s mydb" shell
 
 - Connect the server on port 2222 using two separate ``telnet`` clients
-- Start ``appmon`` in the Erlang shell by running this command::
+- Start ``appmon`` in the Erlang shell::
 
    > appmon:start().
 
@@ -1532,9 +1554,11 @@ Seriously -- that just happened!
 
 But more importantly, you know a *lot* about writing quality Erlang using e2:
 
-- Erlang code is organized in *applications* -- yours is called ``mydb``
-- e2 *tasks* are used to perform work
-- e2 *services* are used to provide functionality to client in your app
+- Erlang code is organized in :doc_`applications <applications>` -- yours is
+  called ``mydb``
+- e2 :doc:`tasks <tasks>` are used to perform work
+- e2 :doc:`services <services>` are used to provide functionality to client in
+  your app
 - You can assemble tasks services together to write complex software
 - Supervisors are used to manage processes
 
@@ -1549,12 +1573,85 @@ You even got a taste of Erlang coding style:
 What We Didn't Cover
 --------------------
 
-XXX: packaging/deployment
+Data Validation
+~~~~~~~~~~~~~~~
+
+Wait a minute! We're not performing any of that special validation we talked
+about earlier! That was the whole point of writing our own database for crying
+out loud!
+
+This is coming soon.
+
+Here's what's planned:
+
+- Modify ``mydb_data`` to enforce our custom validation, returning ``{error,
+  Msg}`` on an invalid ``put``
+- Modify ``mydb_client_handler`` to handle ``{error, Msg}`` results, which
+  sends the result to the client ala "-ERROR invalid value" on an invalid "PUT"
+
+You can try it now, if you're dare!
+
+Cheats...
+
+.. code-block:: erlang
+
+   send_reply({error, Msg}, Socket) ->
+       gen_tcp:send(Socket, ["-ERROR ", Msg, "\r\n"]);
+
+.. code-block:: erlang
+
+   handle_msg({put, Key, Value}, _From, Db) ->
+       handle_validate_put(validate_put(Value), Key, Db);
+
+.. code-block:: erlang
+
+   validate_put(Value) ->
+       validate_length(length(Value), Value).
+
+   validate_length(Len, Value) when Len >= 3 -> {true, Value};
+   validate_length(_, _) -> false.
+
+   handle_validate_put({true, Value}, Key, Db) ->
+       {reply, mydb_db:put(Db, Key, Value), Db};
+   handle_validate_put(false, _Key, Db) ->
+       {reply, {error, "invalid value"}, Db}.
+
+Application Packaging
+~~~~~~~~~~~~~~~~~~~~~
+
+We haven't covered what's involved in packaging and deploying your
+application. We'll update this tutorial once that's been sorted out!
+
+In the mean time, you can deploy the source code to the application and run
+this command to build it::
+
+   $ make
+
+You can run this command to run the application as a daemon::
+
+   $ config=test ./start
+
+This will use the local ``test.config`` for the application configuration. If
+you wanted to use different settings -- e.g. ``production.config`` -- you'd
+create that file and use this to start the application::
+
+   $ config=production ./start
+
+You can check the status of the application this way::
+
+   $ ./status
+
+You can stop the application this way::
+
+   $ ./stop
+
+And you can check the application logs by looking in the ``log`` directory!
 
 Next Steps
 ==========
 
-XXX
+This of course is an introductory tutorial, so there's a *lot* left out! Stay
+tuned to `e2project.org`_ for new tutorials, examples, and what not!
 
 .. ==========================================================================
 
@@ -1577,13 +1674,23 @@ XXX
 .. [#rr] This isn't strictly necessary for this example, but it makes it easier
    to read the record returned by ``file:read_file_info/2``.
 
-.. [#api_consistency] Erlang has a number of glaring inconsistencies in the
+.. [#reassign] Seasoned Erlangers might at first blance at this assignment --
+   it looks like we're reassigning a variable, which in Erlang is a no-no. But
+   in fact, you can't *redefine* a variable -- and in this case ``Db`` is
+   always the ``dets`` table name "/tmp/test.db".
+
+.. [#api_consistency] Erlang has a number of inconsistencies in the
    implementation of its APIs. Don't be surprised to see wildly differing
    function names and return value conventions in the core modules!
 
 .. [#callbacks] If you're used to Java, *callbacks* are similar to
    ``abstract protected`` methods that are called by super classes and
-   implemented by concrete subclasses classes.
+   implemented by concrete subclasseses.
+
+.. [#s2] Here's a case where we can't reuse the same variable in Erlang. Our
+   previous server was named ``Server`` and was a process ID. Subsequent
+   process IDs will be different, so if we tried to assign the new server to
+   ``{ok, Server}`` we'd get a bad match! Try it if you want.
 
 .. [#close_telnet] You typically close telnet by issuing the telnet escape
    character (e.g. ``^]`` + ``ENTER``) and typing ``quit`` + ``ENTER``.
@@ -1608,3 +1715,5 @@ XXX
 .. _re\:run/3: http://www.erlang.org/doc/man/re.html#run-3
 .. _singletons: http://en.wikipedia.org/wiki/Singleton_pattern
 .. _application\:get_env/1: http://www.erlang.org/doc/apps/kernel/application.html#get_env-1
+.. _io\:format/1: http://www.erlang.org/doc/man/io.html#format-1
+.. _e2project.org: http://e2project.org

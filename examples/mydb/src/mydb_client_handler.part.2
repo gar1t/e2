@@ -19,7 +19,7 @@ read_line(Socket) ->
 handle_command_line({ok, Data}, Socket) ->
     io:format("### Got ~p from client~n", [Data]),
     {repeat, Socket};
-handle_command_line({error, Err}, Socket) ->
+handle_command_line({error, Err}, _Socket) ->
     {stop, {socket_err, Err}}.
 
 terminate(_Reason, Socket) ->

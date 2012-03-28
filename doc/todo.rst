@@ -35,6 +35,8 @@ Documentation
   * Distributed Erlang support
   * Missing OTP behaviors (gen_event and gen_fsm)
 
+* Add a data valiation feature to the tutorial (original plan)
+
 .. _examples/logger: https://github.com/gar1t/e2/tree/master/examples/logger
 .. _e2_opt_tests.erl: https://github.com/gar1t/e2/blob/master/test/e2_opt_tests.erl
 .. _examples/pubsub: https://github.com/gar1t/e2/tree/master/examples/pubsub
