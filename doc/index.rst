@@ -1,6 +1,6 @@
-=======================
-Better software, faster
-=======================
+===================================
+Use Erlang to build better software
+===================================
 
 e2 is a light weight Erlang library that lets you write better software with
 less time and effort.
