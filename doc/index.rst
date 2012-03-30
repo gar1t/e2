@@ -11,7 +11,7 @@ less time and effort.
    overview
    quick_start
    tutorial
-   erlang
+   contact
 
 .. rubric:: Core Concepts
 
@@ -29,6 +29,7 @@ less time and effort.
 .. toctree::
    :maxdepth: 1
 
+   erlang
    erlang_modules
    examples
    e2_vs_otp

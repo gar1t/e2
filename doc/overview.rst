@@ -2,7 +2,7 @@
  e2 Overview
 =============
 
-e2 is a light weight Erlang library that simplified the process of writing
+e2 is a light weight Erlang library that simplifies the process of writing
 better software.
 
 .. rubric:: Better Software
