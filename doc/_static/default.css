@@ -295,3 +295,20 @@ blockquote {
 a.reference em {
     font-style: normal;
 }
+
+#disqus_thread {
+    margin-top: 25px;
+}
+
+#dsq-content h3 {
+    font-size: 100%;
+    margin: 0 0 12px 0 !important;
+}
+
+.dsq-reply {
+    margin-top: 12px !important;
+}
+
+.dsq-textarea-reply {
+    margin-bottom: 15px !important;
+}
