@@ -204,9 +204,9 @@ child_spec({{M, F, A}, Options}) when is_atom(M), is_atom(F), is_list(A) ->
     Shutdown = e2_opt:value(shutdown, Opts),
     Type = e2_opt:value(type, Opts),
     {Id, {M, F, A}, Restart, Shutdown, Type, [M]};
-child_spec({M, F, A}) ->
+child_spec({M, F, A}) when is_atom(M), is_atom(F), is_list(A) ->
     child_spec({{M, F, A}, []});
-child_spec({Mod, Options}) ->
+child_spec({Mod, Options}) when is_atom(Mod), is_list(Options) ->
     child_spec({{Mod, start_link, []}, Options});
 child_spec(Mod) when is_atom(Mod) ->
     child_spec({{Mod, start_link, []}, []});
