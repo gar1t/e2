@@ -647,6 +647,10 @@ This is *great*. Could e2 highlight this as a pattern?
 
       *Yes!*
 
+** TODO app start to support restart type
+
+e2_application:start_xxx functions need to support a restart type
+(e.g. permanent, temporary, transient).
 
 * Publishing e2 To Do
 
