@@ -16,23 +16,19 @@
          tty/1,
          add_handler/1, add_handler/2, delete_handler/1]).
 
--define(is_string(S), is_list(S) orelse is_binary(S)).
-
 %%--------------------------------------------------------------------
-%% @doc Log an info message or report.
+%% @doc Log an info report.
 %%
 %% @spec (Info) -> ok
-%% Info = string() | term()
+%% Info = term()
 %% @end
 %%--------------------------------------------------------------------
 
-info(Msg) when ?is_string(Msg) ->
-    error_logger:info_msg(Msg);
 info(Report) ->
     error_logger:info_report(Report).
 
 %%--------------------------------------------------------------------
-%% @doc Log an info message or report.
+%% @doc Log an info report.
 %%
 %% If the first argument is a string, the second argument must be a
 %% list of arguments used in message format string.
@@ -46,20 +42,18 @@ info(Report) ->
 %% @end
 %%--------------------------------------------------------------------
 
-info(Msg, Args) when ?is_string(Msg) ->
-    error_logger:info_msg(Msg, Args);
-info(Type, Report) ->
-    error_logger:info_report(Type, Report).
+info(Type, Report) when is_atom(Type) ->
+    error_logger:info_report(Type, Report);
+info(Msg, Args) ->
+    error_logger:info_msg(Msg, Args).
 
 %%--------------------------------------------------------------------
-%% @doc Logs an error message or report.
+%% @doc Logs an error report.
 %% @spec (Info) -> ok
 %% Info = string() | term()
 %% @end
 %%--------------------------------------------------------------------
 
-error(Msg) when ?is_string(Msg) ->
-    error_logger:error_msg(Msg);
 error(Report) ->
     error_logger:error_report(Report).
 
@@ -75,10 +69,10 @@ error(Report) ->
 %% @end
 %%--------------------------------------------------------------------
 
-error(Msg, Args) when ?is_string(Msg) ->
-    error_logger:error_msg(Msg, Args);
-error(Type, Report) ->
-    error_logger:error_report(Type, Report).
+error(Type, Report) when is_atom(Type) ->
+    error_logger:error_report(Type, Report);
+error(Msg, Args) ->
+    error_logger:error_msg(Msg, Args).
 
 %%--------------------------------------------------------------------
 %% @doc Turns tty printing on or off.
