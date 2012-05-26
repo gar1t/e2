@@ -221,6 +221,8 @@ handle_call_result({noreply, ModState, {timeout, Timeout}}, State) ->
     {noreply, set_mod_state(ModState, State), Timeout};
 handle_call_result({noreply, ModState, hibernate}, State) ->
     {noreply, set_mod_state(ModState, State), hibernate};
+handle_call_result({stop, Reason}, State) ->
+    {stop, Reason, State};
 handle_call_result({stop, Reason, ModState}, State) ->
     {stop, Reason, set_mod_state(ModState, State)};
 handle_call_result({stop, Reason, Reply, ModState}, State) ->
@@ -247,6 +249,8 @@ handle_cast_result({reply, _Reply, ModState, {timeout, Timeout}}, State) ->
     {noreply, set_mod_state(ModState, State), Timeout};
 handle_cast_result({reply, _Reply, ModState, hibernate}, State) ->
     {noreply, set_mod_state(ModState, State), hibernate};
+handle_cast_result({stop, Reason}, State) ->
+    {stop, Reason, State};
 handle_cast_result({stop, Reason, ModState}, State) ->
     {stop, Reason, set_mod_state(ModState, State)};
 handle_cast_result({stop, Reason, _Reply, ModState}, State) ->
@@ -278,6 +282,8 @@ handle_info_result({reply, _Reply, ModState, {timeout, Timeout}}, State) ->
     {noreply, set_mod_state(ModState, State), Timeout};
 handle_info_result({reply, _Reply, ModState, hibernate}, State) ->
     {noreply, set_mod_state(ModState, State), hibernate};
+handle_info_result({stop, Reason}, State) ->
+    {stop, Reason, State};
 handle_info_result({stop, Reason, ModState}, State) ->
     {stop, Reason, set_mod_state(ModState, State)};
 handle_info_result({stop, Reason, _Reply, ModState}, State) ->
