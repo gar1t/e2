@@ -652,9 +652,12 @@ This is *great*. Could e2 highlight this as a pattern?
 e2_application:start_xxx functions need to support a restart type
 (e.g. permanent, temporary, transient).
 
-* Publishing e2 To Do
+** TODO Release support
 
-** Change dependency to git://github.com/gar1t/e2.git
-** Replace git://github.com/gar1t/e2.git with official release
-** Delete e2v2
-** Spell check everything!
+Create a make file target for setting up release support.
+
+Maybe we use rebar for "generate" -- or maybe we just do it directly.
+
+** TODO Compiled escript support
+
+Create a makefile target (or util) to create an escript for an app.
