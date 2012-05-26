@@ -12,7 +12,7 @@
 
 -module(e2_log).
 
--export([info/1, info/2, error/1, error/2,
+-export([info/1, info/2, warn/1, warn/2, error/1, error/2,
          tty/1,
          add_handler/1, add_handler/2, delete_handler/1]).
 
@@ -46,6 +46,37 @@ info(Type, Report) when is_atom(Type) ->
     error_logger:info_report(Type, Report);
 info(Msg, Args) ->
     error_logger:info_msg(Msg, Args).
+
+%%--------------------------------------------------------------------
+%% @doc Log a warning report.
+%%
+%% @spec (Warning) -> ok
+%% Info = term()
+%% @end
+%%--------------------------------------------------------------------
+
+warn(Report) ->
+    error_logger:warning_report(Report).
+
+%%--------------------------------------------------------------------
+%% @doc Log a warning report.
+%%
+%% If the first argument is a string, the second argument must be a
+%% list of arguments used in message format string.
+%%
+%% If the first argument is an atom, it is used as the report type for
+%% the second argument.
+%%
+%% @spec (MsgOrType, ArgsOrReport) -> ok
+%% MsgOrType = string() | atom()
+%% ArgsOrReport = [term()] | term()
+%% @end
+%%--------------------------------------------------------------------
+
+warn(Type, Report) when is_atom(Type) ->
+    error_logger:warning_report(Type, Report);
+warn(Msg, Args) ->
+    error_logger:warning_msg(Msg, Args).
 
 %%--------------------------------------------------------------------
 %% @doc Logs an error report.
