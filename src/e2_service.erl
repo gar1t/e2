@@ -53,7 +53,7 @@ start_link(Module, Args) ->
 %% when the service is initialized. If `init/1' is not exported, Args
 %% is the initial service state.
 %%
-%% If `register' or `{register, Name}' is provided as an option, the
+%% If `registered' or `{registered, Name}' is provided as an option, the
 %% service will be registered. If not specified, the registered name
 %% defaults to Module.
 %%
