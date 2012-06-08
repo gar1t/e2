@@ -7,7 +7,7 @@
 -export([init/1, handle_msg/3]).
 
 start_link() ->
-    e2_service:call(?MODULE, [], [registered]).
+    e2_service:start_link(?MODULE, [], [registered]).
 
 init([]) ->
     {ok, some_db:connect("some_user", "some_pwd")}.
