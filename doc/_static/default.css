@@ -14,13 +14,13 @@
 /* -- page layout ----------------------------------------------------------- */
 
 body {
-    font-family: sans-serif;
-    font-size: 100%;
+    font:13px/1.231 arial,helvetica,clean,sans-serif;*font-size:small;*font:x-small;
     /*background-color: #11303d;*/
     background-color: #200;
     color: #000;
     margin: 0;
     padding: 0;
+    line-height: 130%;
 }
 
 ul, ol {
