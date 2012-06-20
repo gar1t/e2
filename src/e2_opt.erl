@@ -36,6 +36,7 @@
                      T == list orelse
                      T == boolean orelse
                      T == binary orelse
+                     T == iolist orelse
                      T == function)).
 
 %%%===================================================================
@@ -214,6 +215,12 @@ check_type(Val, #constraint{type=list}) when is_list(Val) -> ok;
 check_type(Val, #constraint{type=atom}) when is_atom(Val) -> ok;
 check_type(Val, #constraint{type=binary}) when is_binary(Val) -> ok;
 check_type(Val, #constraint{type=function}) when is_function(Val) -> ok;
+check_type(Val, #constraint{type=iolist}) ->
+    try iolist_size(Val) of
+        _ -> ok
+    catch
+        error:badarg -> error
+    end;
 check_type(_, _) -> error.
 
 check_range(_Val, #constraint{min=undefined, max=undefined}) -> ok;
