@@ -1,4 +1,4 @@
--module({{appid}}_app).
+\-module({{appid}}_app).
 
 -behavior(e2_application).
 
@@ -9,5 +9,5 @@
 %%%===================================================================
 
 init() ->
-    e2_log:info("TODO: configure top-level processes for your app~n"),
+    e2_log:info("TODO: configure top-level processes for your app"),
     {ok, []}.
