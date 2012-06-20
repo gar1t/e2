@@ -2,7 +2,7 @@
  Contact
 =========
 
-Email List: http://groups.google.com/group/e2-users
+For comments or questions, just post to this site.
 
-Bug Reports: https://github.com/gar1t/e2/issues
+Or you can `create a formal bug report <https://github.com/gar1t/e2/issues>`_."
 
