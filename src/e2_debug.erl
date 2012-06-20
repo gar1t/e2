@@ -3,7 +3,17 @@
 -export([trace_module/1,
          trace_function/2,
          trace_function/3,
-         stop_all_tracing/0]).
+         trace_messages/1,
+         trace_messages/2,
+         stop_tracing/0]).
+
+-define(OPTIONS_SCHEMA,
+	[{file, [{default, undefined}, {type, string}]},
+         {pattern, [{default, undefined}]},
+         {no_return, [{default, false}, {type, boolean}]},
+         {send_only, [{default, false}, {type, boolean}]},
+         {receive_only, [{default, false}, {type, boolean}]},
+         {process_events, [{default, false}, {type, boolean}]}]).
 
 %%%===================================================================
 %%% API
@@ -13,52 +23,97 @@ trace_module(Module) ->
     trace_module(Module, []).
 
 trace_module(Module, Options) ->
-    start_tracer(Options),
-    dbg_tpl(Module, Options),
-    dbg_p(Options).
+    Opts = e2_opt:validate(Options, ?OPTIONS_SCHEMA),
+    start_tracer(Opts),
+    dbg_tpl(Module, Opts),
+    dbg_calls().
 
 trace_function(Module, Function) ->
     trace_function(Module, Function, []).
 
 trace_function(Module, Function, Options) ->
-    start_tracer(Options),
-    dbg_tpl(Module, Function, Options),
-    dbg_p(Options).
+    Opts = e2_opt:validate(Options, ?OPTIONS_SCHEMA),
+    start_tracer(Opts),
+    dbg_tpl(Module, Function, Opts),
+    dbg_calls().
 
-stop_all_tracing() ->
+trace_messages(Process) ->
+    trace_messages(Process, []).
+
+trace_messages(Process, Options) ->
+    Opts = e2_opt:validate(Options, ?OPTIONS_SCHEMA),
+    start_tracer(Opts),
+    dbg_messages(Process, Opts).
+
+stop_tracing() ->
     dbg:stop_clear().
 
 %%%===================================================================
 %%% dbg wrappers
 %%%===================================================================
 
-dbg_p(_Options) ->
+dbg_tpl(Module, Opts) ->
+    handle_dbg_tpl(dbg:tpl(Module, match_spec(Opts))).
+
+dbg_tpl(Module, {Function, Arity}, Opts) ->
+    handle_dbg_tpl(dbg:tpl(Module, Function, Arity, match_spec(Opts)));
+dbg_tpl(Module, Function, Opts) ->
+    handle_dbg_tpl(dbg:tpl(Module, Function, match_spec(Opts))).
+
+handle_dbg_tpl({ok, _}) -> ok;
+handle_dbg_tpl({error, Err}) -> error(Err).
+
+dbg_calls() ->
     handle_dbg_p(dbg:p(all, c)).
 
 handle_dbg_p({ok, _}) -> ok;
 handle_dbg_p({error, Err}) -> error(Err).
 
-dbg_tpl(Module, Options) ->
-    handle_dbg_tpl(dbg:tpl(Module, match_spec(Options))).
+dbg_messages(Process, Opts) ->
+    handle_dbg_p(dbg:p(Process, trace_flags(Opts))).
 
-dbg_tpl(Module, {Function, Arity}, Options) ->
-    handle_dbg_tpl(dbg:tpl(Module, Function, Arity, match_spec(Options)));
-dbg_tpl(Module, Function, Options) ->
-    handle_dbg_tpl(dbg:tpl(Module, Function, match_spec(Options))).
+trace_flags(Opts) ->
+    message_flags(Opts, process_event_flags(Opts, [])).
 
-handle_dbg_tpl({ok, _}) -> ok;
-handle_dbg_tpl({error, Err}) -> error(Err).
+message_flags(Opts, Acc) ->
+    case e2_opt:value(send_only, Opts) of
+        true -> [s|Acc];
+        false ->
+            case e2_opt:value(receive_only, Opts) of
+                true -> [r|Acc];
+                false -> [m|Acc]
+            end
+    end.
+
+process_event_flags(Opts, Acc) ->
+    case e2_opt:value(process_events, Opts) of
+        true -> [p|Acc];
+        false -> Acc
+    end.
 
 %%%===================================================================
 %%% tracer
 %%%===================================================================
 
-start_tracer(_Options) ->
+start_tracer(Opts) ->
     start_dbg(),
-    handle_tracer(dbg:tracer(process, tracer())).
+    handle_tracer(dbg:tracer(process, tracer(Opts))).
 
-tracer() ->
-    {fun(Msg, []) -> trace(Msg), [] end, []}.
+tracer(Opts) ->
+    Pattern = pattern_match_spec(e2_opt:value(pattern, Opts)),
+    Out = trace_device(e2_opt:value(file, Opts)),
+    {fun(Msg, []) -> maybe_trace(Msg, Pattern, Out), [] end, []}.
+
+pattern_match_spec(undefined) -> undefined;
+pattern_match_spec(Pattern) ->
+    ets:match_spec_compile([{Pattern, [], ['$_']}]).
+
+trace_device(undefined) -> standard_io;
+trace_device(File) when is_list(File) ->
+    handle_file_open(file:open(File, [append])).
+
+handle_file_open({ok, Out}) -> Out;
+handle_file_open({error, Err}) -> error({trace_file, Err}).
 
 handle_tracer({ok, _Pid}) -> ok;
 handle_tracer({error, already_started}) -> ok.
@@ -70,26 +125,68 @@ handle_dbg_start({ok, _Pid}) -> ok;
 handle_dbg_start({'EXIT', {{case_clause, Pid}, _}})
   when is_pid(Pid) -> ok.
 
-trace({trace, Pid, call, {M, F, A}}) ->
-    io:format(
-      "TRACE (~p) => ~s:~s/~b~n  ~p~n~n",
-      [Pid, M, F, length(A), A]);
-trace({trace, Pid, return_from, {M, F, Arity}, Val}) ->
-    io:format(
-      "TRACE (~p) <= ~s:~s/~b~n  ~p~n~n",
-      [Pid, M, F, Arity, Val]);
-trace(Other) ->
-    io:format("TRACE:~n  ~p~n~n", [Other]).
+maybe_trace(Msg, undefined, Out) ->
+    trace(Msg, Out);
+maybe_trace(Msg, Pattern, Out) ->
+    handle_pattern_match(
+      ets:match_spec_run([msg_content(Msg)], Pattern), Msg, Out).
+
+msg_content({trace, _, call, {_, _, Args}}) -> Args;
+msg_content({trace, _, return_from, _, Val}) -> Val;
+msg_content({trace, _, send, Msg, _}) -> Msg;
+msg_content({trace, _, 'receive', Msg}) -> Msg;
+msg_content(Other) -> Other.
+
+handle_pattern_match([_], Msg, Out) -> trace(Msg, Out);
+handle_pattern_match([], _Msg, _Out) -> not_traced.
+
+trace(Msg, Out) ->
+    {Format, Data} = format_msg(Msg),
+    io:format(Out, Format, Data).
+
+format_msg({trace, Pid, call, {M, F, A}}) ->
+    {"~n=TRACE CALL==== ~s ===~n~p -> ~s:~s/~p~n~p~n",
+     [timestamp(), Pid, M, F, length(A), A]};
+format_msg({trace, Pid, return_from, {M, F, Arity}, Val}) ->
+    {"~n=TRACE RETURN==== ~s ===~n~p <- ~s:~s/~p~n~p~n",
+     [timestamp(), Pid, M, F, Arity, Val]};
+format_msg({trace, Pid, send, Msg, Dest}) ->
+    {"~n=TRACE SEND==== ~s ===~n~p -> ~p~n~p~n",
+     [timestamp(), Pid, Dest, Msg]};
+format_msg({trace, Pid, 'receive', Msg}) ->
+    {"~n=TRACE RECEIVE==== ~s ===~n~p~n~p~n", [timestamp(), Pid, Msg]};
+format_msg(Other) ->
+    HR = hr(),
+    {"~s~nTRACE:~n~s~n  ~p~n~n", [HR, HR, Other]}.
+
+timestamp() ->
+    {{Y, M, D}, {H, Min, S}} = erlang:localtime(),
+    io_lib:format("~p-~s-~p::~p:~p:~p", [D, month(M), Y, H, Min, S]).
+
+month(1) -> "Jan";
+month(2) -> "Feb";
+month(3) -> "Mar";
+month(4) -> "Apr";
+month(5) -> "May";
+month(6) -> "Jun";
+month(7) -> "Jul";
+month(8) -> "Aug";
+month(9) -> "Sep";
+month(10) -> "Oct";
+month(11) -> "Nov";
+month(12) -> "Dec".
+
+hr() ->
+    case io:columns() of
+	{ok, N} -> binary:copy(<<"-">>, N - 2);
+	{error, enotsup} -> binary:copy(<<"-">>, 78)
+    end.
 
 %%%===================================================================
 %%% Match spec support
 %%%===================================================================
 
--define(MS_SCHEMA,
-	[{no_return, [{default, false}, {type, boolean}]}]).
-
-match_spec(Options) ->
-    Opts = e2_opt:validate(Options, ?MS_SCHEMA),
+match_spec(Opts) ->
     case e2_opt:value(no_return, Opts) of
 	true ->
 	    [{'_', [], []}];
