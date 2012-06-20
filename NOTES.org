@@ -661,3 +661,9 @@ Maybe we use rebar for "generate" -- or maybe we just do it directly.
 ** TODO Compiled escript support
 
 Create a makefile target (or util) to create an escript for an app.
+** TODO Implicit supervisor options
+
+If we don't already, support implicit child options (e.g. transient in addition
+to {restart, transient}, etc.)
+
+Document it.
