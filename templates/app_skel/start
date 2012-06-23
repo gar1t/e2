@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/usr/bin/env bash
 export ERL_LIBS=./deps
 mkdir -p ./run ./log
 run_erl -daemon ./run/ ./log/ "erl -pa ebin -config ${config-./dev} -s {{appid}}"
