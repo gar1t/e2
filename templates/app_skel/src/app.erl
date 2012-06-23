@@ -1,4 +1,4 @@
-\-module({{appid}}_app).
+-module({{appid}}_app).
 
 -behavior(e2_application).
 

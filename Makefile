@@ -1,4 +1,5 @@
 rebar = ./rebar
+scripts = start stop status
 
 compile: deps
 	$(rebar) compile
@@ -48,7 +49,7 @@ env-module:
 
 new-project: env-appid env-appdir
 	$(rebar) create template=e2app appid=${appid} dest="${appdir}"
-	chmod 755 "${appdir}"/{start,stop,status}
+	$(foreach var,$(scripts),chmod 755 ${appdir}/$(var);)
 
 new-service: env-module
 	$(rebar) create template=e2service module=${module} dest="$${appdir-.}" skip_deps=true
