@@ -44,7 +44,7 @@ init_result(ignore, _) ->
     ignore.
 
 dispatch_handle_msg(Module, Msg, From, State) ->
-    handle_dispatch_handle_msg(Module:handle_msg(Msg, From, State)).
+    handle_dispatch_handle_msg(Module:handle_msg(Msg, From, State), State).
 
 handle_msg_result({noreply, _}, State) ->
     {noreply, State};
@@ -54,6 +54,8 @@ handle_msg_result({reply, Reply, _}, State) ->
     {reply, Reply, State};
 handle_msg_result({reply, Reply, _, Timeout}, State) ->
     {reply, Reply, State, Timeout};
+handle_msg_result({stop, Reason}, State) ->
+    {stop, Reason, State};
 handle_msg_result({stop, Reason, _}, State) ->
     {stop, Reason, State}.
 
@@ -93,15 +95,17 @@ handle_dispatch_init(ignore) ->
 handle_dispatch_init(Other) ->
     exit({bad_return_value, Other}).
 
-handle_dispatch_handle_msg({noreply, State}) ->
+handle_dispatch_handle_msg({noreply, State}, _State0) ->
     {{noreply, State}, State};
-handle_dispatch_handle_msg({noreply, State, Timeout}) ->
+handle_dispatch_handle_msg({noreply, State, Timeout}, _State0) ->
     {{noreply, State, Timeout}, State};
-handle_dispatch_handle_msg({reply, Reply, State}) ->
+handle_dispatch_handle_msg({reply, Reply, State}, _State0) ->
     {{reply, Reply, State}, State};
-handle_dispatch_handle_msg({reply, Reply, State, Timeout}) ->
+handle_dispatch_handle_msg({reply, Reply, State, Timeout}, _State0) ->
     {{reply, Reply, Timeout}, State};
-handle_dispatch_handle_msg({stop, Reason, State}) ->
+handle_dispatch_handle_msg({stop, Reason}, State0) ->
+    {{stop, Reason}, State0};
+handle_dispatch_handle_msg({stop, Reason, State}, _State0) ->
     {{stop, Reason, State}, State};
-handle_dispatch_handle_msg(Other) ->
-    exit({bad_result_value, Other}).
+handle_dispatch_handle_msg(Other, _State) ->
+    exit({bad_return_value, Other}).
