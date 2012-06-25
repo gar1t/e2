@@ -8,14 +8,11 @@
 
    $ git clone git://github.com/gar1t/e2.git
 
-Note the location of the local cloned e2 repository -- we'll refer to this as
-``E2_HOME``.
-
 .. rubric:: Step 2 - Build e2
 
 ::
 
-   $ cd $E2_HOME
+   $ cd e2
    $ make
 
 .. rubric:: Step 3 - Create a test project
