@@ -1,5 +1,5 @@
 SPHINXOPTS    =
-SPHINXBUILD   = sphinx-build2
+SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
 ALLSPHINXOPTS   = -d $(BUILDDIR)/doctrees $(SPHINXOPTS) .

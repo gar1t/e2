@@ -12,7 +12,7 @@ to Erlang processes.
 
 ``e2_service`` is identical to ``gen_server`` under the covers -- it is a
 ``gen_server`` behavior. The additional overhead in using an e2 service is the
-cost of on additional functional call for each ``gen_server`` operation.
+cost of an additional functional call for each ``gen_server`` operation.
 
 ``e2_service`` differes from ``gen_server`` as follows:
 
@@ -21,12 +21,12 @@ cost of on additional functional call for each ``gen_server`` operation.
   into a single ``handle_msg/3`` callback in e2
 - ``e2_sevice`` does not support ``code_change/3`` [#code_change]_
 
-Here's the minimum foot print of ``gen_server``:
+The minimum foot print of ``gen_server`` looks like this:
 
 .. literalinclude:: gen_server_skel.erl
    :language: erlang
 
-Here's the minimum foot print of ``e2_service``:
+The minimum foot print of ``e2_service`` looks like this:
 
 .. literalinclude:: e2_service_skel.erl
    :language: erlang
@@ -46,8 +46,8 @@ In OTP, applications typically start the top level supervisor.
 e2_task vs gen_server
 =====================
 
-An :doc:`e2 task <tasks>` is a type of sevice that runs active after it's
-started. This is a cleanup of the following pattern used in ``gen_server``
+An :doc:`e2 task <tasks>` is a type of sevice that runs actively after it's
+started. It's a cleaner alternative to this pattern used in ``gen_server``
 behaviors:
 
 .. code-block:: erlang
@@ -64,10 +64,11 @@ behaviors:
 
 Returning 0 for the timeout value in ``init/1`` will cause ``gen_server`` to
 call ``handle_info/2`` with a ``timeout`` message before processing any
-messages sent to the process from external sources. This allows a "task" to run
-immediately after ``init/1`` returns.
+messages sent to the process from external sources. This can be used to start
+process work immediately after ``init/1`` returns without the risk of receiving
+unwanted messages.
 
-In e2, this is handled with an explicit task behavior:
+In e2, this is handled with the task behavior:
 
 .. code-block:: erlang
 
@@ -84,9 +85,10 @@ In e2, this is handled with an explicit task behavior:
 e2_task_supervisor vs supervisor
 ================================
 
-Task supervisors in e2 are ``simple_one_for_one`` supervisors. This is the one
-supervisor type that automatically removes it children when they're completed
--- something that's needed for typical "task" applications.
+Task supervisors in e2 are ``simple_one_for_one`` supervisors. This supervisor
+restart strategy automatically removes children when they're completed, which
+is typically the desired behavior when managing concurrently running tasks of a
+particular type.
 
 .. rubric:: Footnotes
 
