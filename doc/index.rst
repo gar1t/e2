@@ -24,6 +24,13 @@ less time and effort.
    supervisors
    facades
 
+.. rubric:: Utilities
+
+.. toctree::
+   :maxdepth: 1
+
+   locks
+
 .. rubric:: Other Documentation
 
 .. toctree::
