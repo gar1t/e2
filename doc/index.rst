@@ -11,6 +11,7 @@ less time and effort.
    overview
    quick_start
    tutorial
+   source
    contact
 
 .. rubric:: Core Concepts
@@ -24,12 +25,13 @@ less time and effort.
    supervisors
    facades
 
-.. rubric:: Utilities
+..
+   .. rubric:: Utilities
 
-.. toctree::
-   :maxdepth: 1
+   .. toctree::
+      :maxdepth: 1
 
-   locks
+      locks
 
 .. rubric:: Other Documentation
 
