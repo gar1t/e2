@@ -1,6 +1,6 @@
 -module(e2_service_skel).
 
--export([start_link/0]).
+-export([start_link/0, handle_msg/3]).
 
 -record(state, {}).
 
