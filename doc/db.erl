@@ -4,7 +4,7 @@
 
 -export([start_link/0, get/0]).
 
--export([init/1, handle_msg/3]).
+-export([init/1, handle_msg/3, terminate/2]).
 
 start_link() ->
     e2_service:start_link(?MODULE, [], [registered]).
@@ -18,5 +18,5 @@ get() ->
 handle_msg(get_db, _From, Db) ->
     {reply, Db, Db}.
 
-terminate(Db) ->
+terminate(_Reason, Db) ->
     some_db:close(Db).
