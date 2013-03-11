@@ -19,7 +19,7 @@ cost of an additional functional call for each ``gen_server`` operation.
 - ``init/1`` and ``terminate/2`` are optional in e2
 - ``handle_call/3``, ``handle_cast/2``, and ``handle_info/2`` are consolidated
   into a single ``handle_msg/3`` callback in e2
-- ``e2_sevice`` does not support ``code_change/3`` [#code_change]_
+- ``e2_service`` does not support ``code_change/3`` [#code_change]_
 
 The minimum foot print of ``gen_server`` looks like this:
 
