@@ -14,7 +14,7 @@ to Erlang processes.
 ``gen_server`` behavior. The additional overhead in using an e2 service is the
 cost of an additional functional call for each ``gen_server`` operation.
 
-``e2_service`` differes from ``gen_server`` as follows:
+``e2_service`` differs from ``gen_server`` as follows:
 
 - ``init/1`` and ``terminate/2`` are optional in e2
 - ``handle_call/3``, ``handle_cast/2``, and ``handle_info/2`` are consolidated
