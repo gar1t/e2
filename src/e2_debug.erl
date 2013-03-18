@@ -127,9 +127,13 @@ handle_dbg_start({'EXIT', {{case_clause, Pid}, _}})
 
 maybe_trace(Msg, undefined, Out) ->
     trace(Msg, Out);
+maybe_trace({_, _, return_from, _, _}=Msg, _Pattern, Out) ->
+    trace(Msg, Out);
 maybe_trace(Msg, Pattern, Out) ->
-    handle_pattern_match(
-      ets:match_spec_run([msg_content(Msg)], Pattern), Msg, Out).
+    handle_pattern_match(apply_pattern(Pattern, Msg), Msg, Out).
+
+apply_pattern(Pattern, Msg) ->
+    ets:match_spec_run([msg_content(Msg)], Pattern).
 
 msg_content({trace, _, call, {_, _, Args}}) -> Args;
 msg_content({trace, _, return_from, _, Val}) -> Val;
