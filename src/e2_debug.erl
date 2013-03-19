@@ -1,6 +1,7 @@
 -module(e2_debug).
 
 -export([trace_module/1,
+         trace_module/2,
          trace_function/2,
          trace_function/3,
          trace_messages/1,
