@@ -385,7 +385,7 @@ Recompile your changes and test the new behavior::
 
    > mydb_db:put(Db, "msg", "Erlang is elegant!").
    ok
-   > mydb_db:get(Db, "msg).
+   > mydb_db:get(Db, "msg").
    {ok, "Erlang is elegant!"}
    > mydb_db:del(Db, "msg").
    ok
