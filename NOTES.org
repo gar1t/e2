@@ -667,3 +667,33 @@ If we don't already, support implicit child options (e.g. transient in addition
 to {restart, transient}, etc.)
 
 Document it.
+** TODO Tweaks to tutorial
+
+*** TODO Workflow intro
+
+It's odd to "stop" the app as the first step - I was confused here.
+
+Instead, "start" the app and explain what the app is. Then tweak the code and
+recompile to illustrate the work flow.
+
+*** TODO Newer shells don't crash on unbound variable access
+
+"Let's make a mistake" doesn't apply in later shells. Use a more extreme error
+like 1 / 0.
+
+*** TODO Added value of function vs case
+
+In addition to having a name, a function has limited scope. That makes it
+easier to reason about and eliminates the chance of using a variable you don't
+want to use.
+
+*** TODO Use used-order ordering of functions in examples
+
+E.g. listen/1 in mydb_server.erl should occur after init/1.
+
+*** TODO Move inet:setopts in client handler to init
+
+This should not be in read_line, wtf.
+
+This should be a refactoring to introduce init/1 as an optional function for a
+task.
