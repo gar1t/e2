@@ -57,7 +57,9 @@ handle_msg_result({reply, Reply, _, Timeout}, State) ->
 handle_msg_result({stop, Reason}, State) ->
     {stop, Reason, State};
 handle_msg_result({stop, Reason, _}, State) ->
-    {stop, Reason, State}.
+    {stop, Reason, State};
+handle_msg_result({stop, Reason, Reply, _}, State) ->
+    {stop, Reason, Reply, State}.
 
 dispatch_terminate(Module, Reason, State) ->
     case erlang:function_exported(Module, terminate, 2) of
@@ -107,5 +109,7 @@ handle_dispatch_handle_msg({stop, Reason}, State0) ->
     {{stop, Reason}, State0};
 handle_dispatch_handle_msg({stop, Reason, State}, _State0) ->
     {{stop, Reason, State}, State};
+handle_dispatch_handle_msg({stop, Reason, Reply, State}, _State0) ->
+    {{stop, Reason, Reply, State}, State};
 handle_dispatch_handle_msg(Other, _State) ->
     exit({bad_return_value, Other}).
