@@ -187,8 +187,12 @@ div.body p, div.body dd, div.body li {
 }
 
 div.admonition {
-    padding: 0;
+    padding: 4px 6px;
     margin: 0;
+    background: #FF9;
+    padding: 5px 10px;
+    line-height: 120%;
+    border: 1px solid #ccc;
 }
 
 div.admonition p.admonition-title + p {
@@ -287,6 +291,8 @@ tt {
 
 span.pre {
     font-size: 93%;
+    font-weight: bold;
+    color: #333;
 }
 
 blockquote {

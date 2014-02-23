@@ -588,8 +588,8 @@ they're called in the context of a *server* process.
 
 It's important to understand and recognize this distinction.
 
-``start_link/1`` is called in the context of the client process. ``init/1``
-is called in the context of the server process. A general in Erlang is this:
+``start_link/1`` is called in the context of the client process. ``init/1`` is
+called in the context of the server process. A general rule in Erlang is this:
 processes are black boxes -- you start them and they run. All the grimy details
 associated with the process are performed by the process -- and die with the
 process. Other processes aren't affected.
@@ -785,9 +785,11 @@ This function handles two cases:
 
 Now let's test the behavior using ``telnet``.
 
-.. note:: Lines prefixed by ``>>`` below indicate text that you should type,
-   followed by ``ENTER``. For example, when you see ``>> GET msg`` type ``GET
-   msg`` and then press ``ENTER``.
+.. note:: Lines prefixed by ``>>`` below indicate text that you should
+   type, followed by ``ENTER``. For example, when you see ``>> GET msg`` type
+   ``GET msg`` and then press ``ENTER`` If you don't see ``>>`` your version of
+   telnet may be using a different prompt, or no problem at all. In this case,
+   just type what follows ``>>`` and press ``ENTER``.
 
 ::
 
@@ -1048,9 +1050,9 @@ Now try some database operations::
    > mydb_data:get("msg").
    {ok, "My database is nigh!"}
 
-Provided we can start this service, our client handlers can us this API without
-worrying about a ``Db`` reference. This is the value of a *service* -- as long
-as it's running, just use it!
+Provided we can start this service, our client handlers can use this API
+without worrying about a ``Db`` reference. This is the value of a *service* --
+as long as it's running, just use it!
 
 Let's take a moment to review this new service of ours.
 
@@ -1364,7 +1366,7 @@ Create the file ``~/e2-tutorial/test.config`` as follows:
 This is how application configuration is specified. In this case, ``mydb`` has
 a list of two properties: ``server_port`` and ``db_file``.
 
-Save the file and quite the Erlang shell.
+Save the file and quit the Erlang shell.
 
 Start the Erlang shell again, but this time, specify some additional options
 that will tell the Erlang VM to read your new configuration::
