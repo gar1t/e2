@@ -771,7 +771,7 @@ This is standard TCP network programming: we're setting socket options and
 reading some data. You can read about socket options in `inet:setopts/2`_
 
 Next, let's stub out some basic command handling support in
-``handle_client_command/2``:
+``handle_command_line/2``:
 
 .. literalinclude:: ../examples/mydb/src/mydb_client_handler.part.2
    :language: erlang
