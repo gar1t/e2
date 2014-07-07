@@ -30,7 +30,7 @@ behaviour_info(callbacks) -> [].
 %%%===================================================================
 
 %%--------------------------------------------------------------------
-%% @doc Start an application along with its dependencies.
+%% @doc Start an application's dependencies.
 %% @spec (App) -> ok | {error, Reason}
 %% App = atom()
 %% @end
@@ -40,7 +40,7 @@ start_dependencies(App) ->
     start_apps(get_dependencies(App)).
 
 %%--------------------------------------------------------------------
-%% @doc Start an application's dependencies.
+%% @doc Start an application along with its dependencies.
 %% @spec (App) -> ok | {error, Reason}
 %% App = atom()
 %% @end
