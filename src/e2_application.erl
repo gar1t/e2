@@ -23,7 +23,7 @@
 -export([behaviour_info/1]).
 
 %% @private
-behaviour_info(callbacks) -> [].
+behaviour_info(callbacks) -> [{init, 0}].
 
 %%%===================================================================
 %%% API
