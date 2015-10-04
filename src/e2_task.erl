@@ -242,5 +242,5 @@ set_start(#state{start=undefined}=State) ->
 set_start(State) -> State.
 
 timestamp() ->
-    {M, S, U} = erlang:now(),
+    {M, S, U} = erlang:timestamp(),
     M * 1000000000 + S * 1000 + U div 1000.
