@@ -28,5 +28,5 @@ handle_msg(reset, _From, _N) ->
     {reply, ok, 1}.
 
 timestamp() ->
-    {M, S, U} = erlang:now(),
+    {M, S, U} = erlang:timestamp(),
     M * 1000000 + S + U / 1000000.
