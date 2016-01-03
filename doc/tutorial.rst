@@ -61,7 +61,7 @@ Setting Up e2
 
 .. note:: If you've already setup e2 from :doc:`quick_start`, you can skip this
    section. References to ``E2_HOME`` in this tutorial refer to the root
-   directory of you local e2 clone.
+   directory of your local e2 clone.
 
 First, retrieve e2 from github::
 
@@ -418,9 +418,9 @@ good names help clarify what's going on.
 You may also find the "case" worthy of a function if it becomes complex
 enough.
 
-Of course, you're perfectly free to use case statements. But you at least feel
-a little guilty -- you're missing a great chance to clarify what you're doing
-with a well defined function!
+Of course, you're perfectly free to use case statements. But you should at
+least feel a little guilty -- you're missing a great chance to clarify what
+you're doing with a well defined function!
 
 Client Access
 =============
@@ -470,7 +470,7 @@ This is a rough sketch, but you get the idea:
 Database Server Stub
 ====================
 
-Let's not think too much here -- we know that we need to parts here:
+Let's not think too much here -- we know that we need two parts here:
 
 - Something listening on a TCP port for incoming client connections
 - Something to handle client connections
@@ -1160,7 +1160,7 @@ operations, ``get``, ``put``, and ``del`` are trivially passed along to the
 Using the Data Service
 ======================
 
-We're only moment away from connecting the dots to get a functional database!
+We're only moments away from connecting the dots to get a functional database!
 
 Modify the three ``db_xxx`` functions in ``mydb_client_handler.erl`` to look
 like this:
