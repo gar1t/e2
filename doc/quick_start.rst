@@ -30,7 +30,7 @@
 
 Of course, you're free to use any editor in place of ``emacs`` :)
 
-``~/e2-quick-start-src/hello.erl`` should look like this:
+``~/e2-quick-start/src/hello.erl`` should look like this:
 
 .. code-block:: erlang
 
@@ -49,7 +49,7 @@ Of course, you're free to use any editor in place of ``emacs`` :)
 
 .. rubric:: Step 5 - Register ``hello`` with your application
 
-Modify ``~/e2-quick-start-src/test_app.erl`` to look like this:
+Modify ``~/e2-quick-start/src/test_app.erl`` to look like this:
 
 .. code-block:: erlang
 
