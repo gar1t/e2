@@ -1,6 +1,6 @@
 %% ===================================================================
 %% @author Garrett Smith <g@rre.tt>
-%% @copyright 2011-2012 Garrett Smith
+%% @copyright 2011-2016 Garrett Smith
 %%
 %% @doc Utility for running e2 tasks that are implemented in other
 %% functions.
