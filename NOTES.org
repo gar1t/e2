@@ -697,3 +697,9 @@ This should not be in read_line, wtf.
 
 This should be a refactoring to introduce init/1 as an optional function for a
 task.
+** TODO Use of erlang:function_exported/3 considered useless?
+
+erlang:function_exported/3 is accurate only if the module is loaded.
+
+Why not just try a method and catch the error (and remember) if it's
+not exported?
