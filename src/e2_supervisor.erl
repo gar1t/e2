@@ -17,7 +17,7 @@
 
 -behaviour(supervisor).
 
--export([start_link/2, start_link/3, supervisor_spec/2]).
+-export([start_link/2, start_link/3, supervisor_spec/2, start_child/2]).
 
 -export([init/1]).
 
@@ -131,6 +131,25 @@ start_link(Module, ChildrenOrArgs, Options) ->
         false ->
             start_supervisor_with_spec(Module, ChildrenOrArgs, Options)
     end.
+
+
+%%--------------------------------------------------------------------
+%% @doc Adds a child spec to a supervisor and starts the child process.
+%%
+%% @spec (Supervisor, ChildSpec) -> Result
+%% Supervisor = pid() | atom()
+%% ChildSpec = {{Module, Function, Args}, ChildOptions}
+%%           | {Module, Function, Args}
+%%           | {Module, ChildOptions}
+%%           | Module
+%% Result = {ok, Child} | {error, Error}
+%% Child = pid()
+%% Error = already_present | {already_started, Child} | term()
+%% @end
+%%--------------------------------------------------------------------
+
+start_child(Sup, Child) ->
+    supervisor:start_child(Sup, child_spec(Child)).
 
 %%--------------------------------------------------------------------
 %% @doc Returns an OTP supervisor spec for a list of child specs and
