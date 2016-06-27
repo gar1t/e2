@@ -136,8 +136,9 @@ start_link(Module, ChildrenOrArgs, Options) ->
 %%--------------------------------------------------------------------
 %% @doc Adds a child spec to a supervisor and starts the child process.
 %%
-%% @spec (Supervisor, ChildSpec) -> Result
+%% @spec (Supervisor, ChildSpecOrArgs) -> Result
 %% Supervisor = pid() | atom()
+%% ChildSpecOrArgs = ChildSpec | [term()]
 %% ChildSpec = {{Module, Function, Args}, ChildOptions}
 %%           | {Module, Function, Args}
 %%           | {Module, ChildOptions}
@@ -148,8 +149,10 @@ start_link(Module, ChildrenOrArgs, Options) ->
 %% @end
 %%--------------------------------------------------------------------
 
-start_child(Sup, Child) ->
-    supervisor:start_child(Sup, child_spec(Child)).
+start_child(Sup, Args) when is_list(Args) ->
+    supervisor:start_child(Sup, Args);
+start_child(Sup, ChildSpec) ->
+    supervisor:start_child(Sup, child_spec(ChildSpec)).
 
 %%--------------------------------------------------------------------
 %% @doc Returns an OTP supervisor spec for a list of child specs and
