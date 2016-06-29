@@ -213,6 +213,7 @@ validate_max_restart({MaxR, MaxT})
 validate_max_restart(_) -> error.
 
 validate_shutdown(Time) when is_integer(Time), Time >= 0 -> ok;
+validate_shutdown(infinity) -> ok;
 validate_shutdown(brutal_kill) -> ok;
 validate_shutdown(_) -> error.
 
