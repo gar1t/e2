@@ -6,3 +6,4 @@ deps
 log
 run
 dev.config
+.rebar3
