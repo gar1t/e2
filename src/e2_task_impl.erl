@@ -10,7 +10,8 @@
 
 -module(e2_task_impl).
 
--export([start_repeat/2, start_repeat/3, next_repeat/1]).
+-export([start_repeat/2, start_repeat/3, next_repeat/1,
+         split_options/2]).
 
 -record(repeat, {target, interval, start, msg}).
 
@@ -40,3 +41,19 @@ delay(#repeat{interval=Interval, start=Start}) ->
 timestamp() ->
     {M, S, U} = erlang:timestamp(),
     M * 1000000000 + S * 1000 + U div 1000.
+
+split_options(Module, Options) ->
+    {ServiceOpts, Rest} = e2_service_impl:split_options(Module, Options),
+    split_options(Options, ServiceOpts, Rest).
+
+split_options([Opt|Rest], TaskOpts, ImplOpts) ->
+    case is_task_opt(Opt) of
+        true ->  split_options(Rest, [Opt|TaskOpts], ImplOpts);
+        false -> split_options(Rest, TaskOpts, [Opt|ImplOpts])
+    end;
+split_options([], TaskOpts, ImplOpts) ->
+    {TaskOpts, ImplOpts}.
+
+is_task_opt({delay, _})  -> true;
+is_task_opt({repeat, _}) -> true;
+is_task_opt(_)           -> false.
