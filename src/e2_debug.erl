@@ -151,22 +151,25 @@ trace(Msg, Out) ->
 
 format_msg({trace, Pid, call, {M, F, A}}) ->
     {"~n=TRACE CALL==== ~s ===~n~p -> ~s:~s/~p~n~p~n",
-     [timestamp(), Pid, M, F, length(A), A]};
+     [formatted_timestamp(), Pid, M, F, length(A), A]};
 format_msg({trace, Pid, return_from, {M, F, Arity}, Val}) ->
     {"~n=TRACE RETURN==== ~s ===~n~p <- ~s:~s/~p~n~p~n",
-     [timestamp(), Pid, M, F, Arity, Val]};
+     [formatted_timestamp(), Pid, M, F, Arity, Val]};
 format_msg({trace, Pid, send, Msg, Dest}) ->
     {"~n=TRACE SEND==== ~s ===~n~p -> ~p~n~p~n",
-     [timestamp(), Pid, Dest, Msg]};
+     [formatted_timestamp(), Pid, Dest, Msg]};
 format_msg({trace, Pid, 'receive', Msg}) ->
-    {"~n=TRACE RECEIVE==== ~s ===~n~p~n~p~n", [timestamp(), Pid, Msg]};
+    {"~n=TRACE RECEIVE==== ~s ===~n~p~n~p~n", [formatted_timestamp(), Pid, Msg]};
 format_msg(Other) ->
     HR = hr(),
     {"~s~nTRACE:~n~s~n  ~p~n~n", [HR, HR, Other]}.
 
-timestamp() ->
-    {{Y, M, D}, {H, Min, S}} = erlang:localtime(),
-    io_lib:format("~p-~s-~p::~p:~p:~p", [D, month(M), Y, H, Min, S]).
+formatted_timestamp() ->
+    {Mega, Sec, Micro} = erlang:timestamp(),
+    {{Y, M, D}, {H, Min, S}} = calendar:now_to_local_time({Mega, Sec, 0}),
+    io_lib:format(
+      "~2..0b-~s-~b::~2..0b:~2..0b:~2..0b.~b",
+      [D, month(M), Y, H, Min, S, Micro]).
 
 month(1) -> "Jan";
 month(2) -> "Feb";
